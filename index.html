@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Gematria Studio — interactive letter · number art</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="aurora"></div>
+
+  <div class="wrap">
+    <header>
+      <h1 class="brand"><span class="glyphs">אψ</span>Gematria Studio</h1>
+      <p class="tagline">Type a word or phrase in Hebrew, Greek or English — watch its numbers become art.</p>
+    </header>
+
+    <!-- input -->
+    <section class="card">
+      <div class="input-row">
+        <div class="phrase-box">
+          <div class="phrase-head">
+            <button class="insert-rabati" type="button"
+                    title="Insert rabati mark — the letter before it counts ×1000 (א¹⁰⁰⁰ = 1000, ב¹⁰⁰⁰ = 2000)">רבתי</button>
+            <span id="script-badge" class="script-badge">—</span>
+          </div>
+          <textarea id="phrase" rows="3" autocomplete="off" spellcheck="false" dir="auto"
+                    placeholder="e.g. יהוה · Ἰησοῦς Χριστός · hello world"></textarea>
+        </div>
+        <div class="phrase-box" id="phrase-b-box" hidden>
+          <div class="phrase-head">
+            <button class="insert-rabati" type="button"
+                    title="Insert rabati mark — the letter before it counts ×1000 (א¹⁰⁰⁰ = 1000, ב¹⁰⁰⁰ = 2000)">רבתי</button>
+            <span id="script-badge-b" class="script-badge">—</span>
+          </div>
+          <textarea id="phrase-b" rows="3" autocomplete="off" spellcheck="false" dir="auto"
+                    placeholder="Compare with a second phrase…"></textarea>
+        </div>
+      </div>
+      <div class="chips" id="chips">
+        <button class="chip" data-text="א¹⁰⁰⁰היה סופי">א¹⁰⁰⁰היה סופי</button>
+        <button class="chip" data-text="בראשית ברא אלהים את השמים ואת הארץ׃">בראשית ברא אלהים את השמים ואת הארץ׃</button>        
+        <button class="chip" data-text="Ἰησοῦς Χριστός">Ἰησοῦς Χριστός</button>
+        <button class="chip" data-text="Λόγος">Λόγος</button>
+        <button class="chip" data-text="Love and Light">Love and Light</button>
+      </div>
+    </section>
+
+    <!-- controls -->
+    <section class="card">
+      <div class="controls">
+        <div class="control-group">
+          <span class="control-label">View</span>
+          <div class="seg" id="view-seg">
+            <button data-view="values" class="active">Letter Grid</button>
+            <button data-view="milui" id="milui-tab" disabled title="Hebrew only">Milui מילוי</button>
+            <button data-view="compare">Compare השוואה</button>
+          </div>
+        </div>
+        <div class="control-group" id="cipher-group">
+          <span class="control-label">Cipher</span>
+          <select id="cipher-select"></select>
+        </div>
+        <div class="control-group" id="depth-group" style="display:none">
+          <span class="control-label">Depth</span>
+          <div class="seg" id="depth-seg">
+            <button data-depth="1" class="active">מילוי Milui</button>
+            <button data-depth="2">מילוי דמילוי Milui²</button>
+          </div>
+        </div>
+        <div class="control-group">
+          <button class="btn" id="cipher-colors-btn"
+                  title="Customize the color of each cipher">🎨 Colors</button>
+        </div>
+        <div class="control-group" id="shape-group">
+          <span class="control-label">Shape</span>
+          <div class="seg" id="shape-seg">
+            <button data-shape="square" class="active">■</button>
+            <button data-shape="circle">●</button>
+            <button data-shape="triangle">▲</button>
+            <button data-shape="hexagon">⬢</button>
+            <button data-shape="octagon">⯄</button>
+          </div>
+        </div>
+      </div>
+      <div class="schemes" id="schemes"></div>
+    </section>
+
+    <!-- cipher color config -->
+    <section class="card config-card" id="colors-card" hidden>
+      <div class="config-head">
+        <h2>Cipher Colors <span class="heb">צבעי הצפנים</span></h2>
+        <p>Pick a color for each cipher — the artwork, totals and labels derive
+           their shades from it as you choose. Saved on this device.</p>
+      </div>
+      <div class="colors-grid" id="colors-grid"></div>
+      <div class="config-actions">
+        <button class="btn" id="colors-reset">Reset all to defaults</button>
+        <span class="cfg-msg" id="colors-msg"></span>
+      </div>
+    </section>
+
+    <!-- custom milui config -->
+    <section class="card config-card" id="config-card" hidden>
+      <div class="config-head">
+        <h2>Custom Milui <span class="heb">מילוי מים</span></h2>
+        <p>Spell out each letter's name in Hebrew. Values update as you type;
+           each spelling must start with its own letter. Saved on this device.</p>
+      </div>
+      <div class="milui-grid" id="milui-grid"></div>
+      <div class="config-actions">
+        <button class="btn btn-primary" id="cfg-save">Save &amp; apply</button>
+        <button class="btn" id="cfg-reset">Reset to my defaults</button>
+        <span class="cfg-msg" id="cfg-msg"></span>
+      </div>
+    </section>
+
+    <!-- stage -->
+    <section class="card stage-card">
+      <div class="stage-toolbar">
+        <span id="art-title"></span>
+        <div class="toolbar-actions">
+          <button class="btn" id="dl-png">Download PNG</button>
+          <button class="btn" id="dl-png-all">PNG + Insights</button>
+          <button class="btn" id="dl-txt">Download Text</button>
+          <button class="btn" id="copy-txt">Copy</button>
+        </div>
+      </div>
+      <div class="stage" id="stage">
+        <div class="empty-state" id="empty-state">
+          <div class="big-glyphs">א · ω · A</div>
+          <p style="margin-top:14px">Every letter carries a number.<br/>Start typing to reveal the pattern.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- atbash mapping -->
+    <section class="card facts-card" id="atbash-card" hidden>
+      <div class="facts-head">
+        <h2>Atbash Mapping <span class="heb">אתב״ש</span></h2>
+        <p>Each letter is swapped with its mirror in the alphabet (א↔ת, ב↔ש …) and takes the mirror's value.</p>
+      </div>
+      <div class="atbash" id="atbash"></div>
+    </section>
+
+    <!-- number insights -->
+    <section class="card facts-card" id="facts-card" hidden>
+      <div class="facts-head">
+        <h2>Number Insights <span class="heb">מהות המספר</span></h2>
+        <p>Prime structure, products and named forms of each total.</p>
+      </div>
+      <div class="facts" id="facts"></div>
+    </section>
+
+    <footer>
+      <span class="g">א</span>
+      <span class="g">ת</span>
+    </footer>
+  </div>
+
+  <div id="tooltip"></div>
+
+  <!-- domain modules, in dependency order; gematria.js assembles the facade -->
+  <script src="src/core.js"></script>
+  <script src="src/alphabet-hebrew.js"></script>
+  <script src="src/alphabet-greek.js"></script>
+  <script src="src/alphabet-english.js"></script>
+  <script src="src/ciphers.js"></script>
+  <script src="src/insights.js"></script>
+  <script src="src/milui-options.js"></script>
+  <script src="src/milui-schemes.js"></script>
+  <script src="src/milui-calc.js"></script>
+  <script src="gematria.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
