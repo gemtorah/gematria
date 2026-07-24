@@ -84,9 +84,11 @@
   // and 4; finals keep their base values (ך=20 … ץ=90).
   const HEBREW_PRE_EXILIC = { ...HEBREW_VALUES, 'ש': 3, 'ת': 4 };
 
-  // Reverse Pre-Exilic: a hand-specified table, NOT derived from letter
-  // order — it is neither atbash nor a mirrored ladder, so never rebuild it
-  // from HEBREW_ORDER. Finals keep their base values.
+  // Reverse Pre-Exilic: reverses the pre-exilic ladder — in which ש=3 and
+  // ת=4 — pairing {1,2}↔{100,200} and 3↔90 … 10↔20, so ש(3)→90, ת(4)→80.
+  // Hand-specified, NOT derived from letter order — it is neither atbash
+  // nor a mirrored ladder, so never rebuild it from HEBREW_ORDER. Finals
+  // keep their base values.
   const HEBREW_REVERSE_PRE_EXILIC = {
     'א': 100, 'ב': 200, 'ג': 90, 'ד': 80, 'ה': 70, 'ו': 60, 'ז': 50,
     'ח': 40, 'ט': 30, 'י': 20, 'כ': 10, 'ל': 9, 'מ': 8, 'נ': 7,

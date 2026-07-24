@@ -105,6 +105,10 @@
                    transform: core.cumulative, building: true, groups: runningPrefixes },
       notariqon: { label: 'Greek Notariqon (Initials)', short: 'initials',
                    map: greek.GREEK_VALUES, pick: firstLetter },
+      preExilic: { label: 'Greek Pre-Exilic Cipher', short: 'pre-exilic',
+                   map: greek.GREEK_PRE_EXILIC },
+      reversePreExilic: { label: 'Greek Reverse Pre-Exilic Cipher', short: 'reverse',
+                   map: greek.GREEK_REVERSE_PRE_EXILIC },
     },
     en: {
       sumerian:  { label: 'English Sumerian',        short: 'A=6',      map: english.ENGLISH_SUMERIAN },
@@ -176,6 +180,16 @@
     // pre-exilic wraps the last two letters: שת reads 3+4, not 700
     assert(core.getValues('שת', CIPHERS.he.preExilic.map).values
       .reduce((a, b) => a + b, 0) === 7, 'pre-exilic: שת != 7');
+    // greek pre-exilic wraps like the hebrew one: τυ reads 3+4, mirroring שת
+    assert(core.getValues('τυ', CIPHERS.el.preExilic.map).values
+      .reduce((a, b) => a + b, 0) === 7, 'greek pre-exilic: τυ != 7');
+    // greek reverse pre-exilic against its anchors: Λόγος = 9+5+90+5+2 = 111,
+    // and shematria.com's Rev 13:18 notariqon (the word initials) = 1300
+    assert(core.getValues('Λόγος', CIPHERS.el.reversePreExilic.map).values
+      .reduce((a, b) => a + b, 0) === 111, 'greek reverse pre-exilic: Λόγος != 111');
+    assert(core.getValues('ωησεοενψτατθαγαεκοααεεε', CIPHERS.el.reversePreExilic.map)
+      .values.reduce((a, b) => a + b, 0) === 1300,
+      'greek reverse pre-exilic: Rev 13:18 notariqon != 1300');
     // word-reduced against Genesis 1:1: seven word roots 4+5+5+5+8+2+8 = 37
     const wordReduced = (phrase, spec) => phrase.split(' ').reduce((sum, w) => {
       const { kept, values } = core.getValues(w, spec.map);

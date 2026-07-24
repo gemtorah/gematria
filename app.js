@@ -48,7 +48,7 @@
           atbash: 188, ayakBachar: 276, boneh: 218, mikum: 291,
           notariqon: 140, preExilic: 120, reversePreExilic: 105 },
     el: { isopsephy: 237, ordinal: 200, building: 218,
-          notariqon: 140 },
+          notariqon: 140, preExilic: 120, reversePreExilic: 105 },
     en: { sumerian: 237, ordinal: 200, reverse: 188, reduction: 174,
           isopsephy: 152, building: 218, buildingSumerian: 259 },
   };
@@ -384,6 +384,7 @@
       }
       sections.push({
         label: labels.join(' vs '),
+        cipherOf,
         // the first phrase's cipher colors the whole section (cross-script
         // pairings share a slot, and slots share a hue by concept anyway)
         accent: accentFor(entries[0].base.script, cipherOf[entries[0].base.script]),
@@ -1509,6 +1510,26 @@
     return lines;
   }
 
+  /* the cipher's letter→value key, appended to every report as a plain
+   * sequence (א=1 ב=2 …); finals and the stigma variant appear only when
+   * the cipher values them differently from their base letter */
+  function cipherKeyLines(script, spec) {
+    const pair = (L) => `${L}=${spec.map[L]}`;
+    let seq;
+    if (script === 'he') {
+      seq = G.HEBREW_ORDER.map(pair);
+      for (const [fin, base] of Object.entries(G.FINAL_TO_BASE)) {
+        if (spec.map[fin] !== spec.map[base]) seq.push(pair(fin));
+      }
+    } else if (script === 'el') {
+      seq = G.GREEK_ORDER.map(pair);
+      if (spec.map['ϛ'] !== spec.map['ϝ']) seq.push(pair('ϛ'));
+    } else {
+      seq = G.ENGLISH_ORDER.map(pair);
+    }
+    return [`${spec.label} — letter values:`, seq.join(' ')];
+  }
+
   function buildTextReport(analysis) {
     const rule = '-'.repeat(46);
     if (state.view === 'compare') {
@@ -1531,6 +1552,17 @@
             ? '  → equal totals' : '  → different totals');
         }
         lines.push('');
+      }
+      // letter-value key for every distinct cipher the visible sections used
+      const seen = new Set();
+      for (const s of sections) {
+        for (const r of s.results) {
+          const key = `${r.script}:${s.cipherOf[r.script]}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          lines.push(rule, ...cipherKeyLines(r.script,
+            G.CIPHERS[r.script][s.cipherOf[r.script]]));
+        }
       }
       return lines.join('\r\n');
     }
@@ -1616,6 +1648,11 @@
         `Digital root: ${G.digitalRoot(analysis.total)}`);
     }
     lines.push(`Letters: ${analysis.letters} · Words: ${analysis.words.length}`);
+    // milui spellings are summed with the standard table, so its key applies
+    const keyScript = state.view === 'milui' ? 'he' : analysis.script;
+    const keySpec = state.view === 'milui' ? G.CIPHERS.he.hechrachi
+      : G.CIPHERS[keyScript][state.cipher[keyScript] || G.DEFAULT_CIPHER[keyScript]];
+    lines.push(rule, ...cipherKeyLines(keyScript, keySpec));
     return lines.join('\r\n');
   }
 

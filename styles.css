@@ -395,13 +395,14 @@ select:focus { border-color: rgba(217, 171, 74, 0.55); }
 .stage-card { padding: 14px; }
 .stage-toolbar {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
   padding: 4px 8px 12px;
 }
 #art-title { font-size: 0.85rem; font-weight: 700; letter-spacing: 0.06em; color: var(--muted); }
-.toolbar-actions { display: flex; gap: 8px; }
+.toolbar-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .btn {
   font-family: var(--sans);
   font-size: 0.8rem;
@@ -627,4 +628,6 @@ footer .g { font-family: var(--serif); color: var(--gold-deep); }
 @media (max-width: 640px) {
   .controls { flex-direction: column; align-items: stretch; }
   .control-group { justify-content: space-between; }
+  .stage-toolbar { flex-direction: column; align-items: stretch; }
+  .toolbar-actions .btn { flex: 1 1 auto; }
 }
