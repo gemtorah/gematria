@@ -74,6 +74,8 @@
       gadol:     { label: 'גימטריה סופית / Final Letters Gematria', short: 'sofit', line: 'Mispar Gadol', map: hebrew.HEBREW_SOFIT_VALUES },
       siduri:    { label: 'גימטריה סדרית / Ordinal Gematria',  short: 'ordinal',  line: 'Mispar Siduri', map: hebrew.HEBREW_ORDINALS },
       katan:     { label: 'גימטריה קטנה / Reduced Gematria',   short: 'reduced',  line: 'Mispar Katan', map: hebrew.HEBREW_KATAN },
+      katanSofit: { label: 'גימטריה קטנה סופית / Small Finals Gematria', short: 'small finals', line: 'Mispar Katan Sofit',
+                   map: hebrew.HEBREW_KATAN_SOFIT },
       katanMilim: { label: 'גימטריה מצומצמת / Word Reduced Gematria', short: 'word reduced', line: 'Mispar Katan Milim',
                    map: hebrew.HEBREW_KATAN, fold: reduceWord },
       atbash:    { label: 'אתב״ש / Atbash Cipher',             short: 'atbash',   line: 'Atbash', map: hebrew.HEBREW_ATBASH,
@@ -157,6 +159,14 @@
       'word reduced: בראשית != 4');
     assert(wordReduced('בראשית ברא אלהים את השמים ואת הארץ',
       CIPHERS.he.katanMilim) === 37, 'word reduced: Genesis 1:1 != 37');
+    // small finals against Genesis 1:1: with ם=6 and ץ=9 the verse sums to
+    // 86, the standard value of אלהים
+    const phraseSum = (phrase, map) => phrase.split(' ').reduce((sum, w) =>
+      sum + core.getValues(w, map).values.reduce((a, b) => a + b, 0), 0);
+    assert(phraseSum('בראשית ברא אלהים את השמים ואת הארץ',
+      CIPHERS.he.katanSofit.map) === 86, 'small finals: Genesis 1:1 != 86');
+    assert(phraseSum('אלהים', CIPHERS.he.hechrachi.map) === 86,
+      'small finals witness: אלהים != 86');
   })();
 
   return { CIPHERS, DEFAULT_CIPHER, detectScript };

@@ -44,7 +44,7 @@
    * scripts (ordinal is sky-blue in Hebrew, Greek and English alike), so a
    * value cell's color always says which cipher produced the number. */
   const CIPHER_HUES = {
-    he: { hechrachi: 237, gadol: 259, siduri: 200, katan: 174, katanMilim: 152,
+    he: { hechrachi: 237, gadol: 259, siduri: 200, katan: 174, katanSofit: 163, katanMilim: 152,
           atbash: 188, ayakBachar: 276, boneh: 218, mikum: 291 },
     el: { isopsephy: 237, ordinal: 200, building: 218 },
     en: { sumerian: 237, ordinal: 200, reverse: 188, reduction: 174,

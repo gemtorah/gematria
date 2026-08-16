@@ -53,6 +53,11 @@
     HEBREW_KATAN[fin] = HEBREW_KATAN[base];
   }
 
+  // Mispar katan sofit: the katan reduction applied to the 27-letter sofit
+  // scale, so finals reduce their own tier — ך=500→5 … ץ=900→9.
+  const HEBREW_KATAN_SOFIT = { ...HEBREW_KATAN };
+  FINAL_ORDER.forEach((L, i) => { HEBREW_KATAN_SOFIT[L] = ((22 + i) % 9) + 1; });
+
   // Ayak Bachar (אי״ק בכ״ר, also spelled Ayak Bakar or Aiq Bekher), the nine
   // chambers: letters share a chamber when
   // their values share a leading digit — א(1) י(10) ק(100) … — with the five
@@ -116,6 +121,11 @@
     assert(HEBREW_KATAN['י'] === 1 && HEBREW_KATAN['כ'] === 2 && HEBREW_KATAN['ת'] === 4,
       'katan reduction broken');
     assert(HEBREW_KATAN['ץ'] === 9, 'katan final tsadi != 9');
+    assert(HEBREW_KATAN_SOFIT['ך'] === 5 && HEBREW_KATAN_SOFIT['ם'] === 6 &&
+      HEBREW_KATAN_SOFIT['ן'] === 7 && HEBREW_KATAN_SOFIT['ף'] === 8 &&
+      HEBREW_KATAN_SOFIT['ץ'] === 9, 'katan sofit finals broken');
+    assert(HEBREW_KATAN_SOFIT['ת'] === 4 && HEBREW_KATAN_SOFIT['מ'] === 4,
+      'katan sofit base letters changed');
     assert(HEBREW_AYAK_CHAMBERS.length === 9 &&
       HEBREW_AYAK_CHAMBERS.every((t) => t.length === 3) &&
       Object.keys(HEBREW_AYAK_BACHAR).length === 27, 'nine chambers incomplete');
@@ -143,6 +153,7 @@
   return {
     HEBREW_ORDER, FINAL_TO_BASE, HEBREW_VALUES, HEBREW_ORDINALS,
     HEBREW_SOFIT_VALUES, HEBREW_ATBASH, HEBREW_ATBASH_LETTER, HEBREW_KATAN,
+    HEBREW_KATAN_SOFIT,
     HEBREW_AYAK_CHAMBERS, HEBREW_AYAK_BACHAR, HEBREW_AYAK_LETTER, HEBREW_CHAMBER_OF,
     HEBREW_NAMES, baseLetter, spellingValue,
   };
