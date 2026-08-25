@@ -1563,8 +1563,8 @@
     if (state.view === 'milui') {
       const scheme = G.SCHEMES[state.scheme];
       const deep = state.miluiDepth === 2;
-      lines.push(`View: ${deep ? "Milui d'Milui מילוי דמילוי" : 'Milui מילוי'}` +
-        ` — scheme ${scheme.name} ${scheme.heb}`, rule);
+      lines.push(`View: ${deep ? "Milui d'Milui" : 'Milui'}` +
+        ` ${scheme.name} ${scheme.heb}`, rule);
       let total = 0;
       for (const word of analysis.words.filter((w) => w.script === 'he')) {
         const rows = [];
@@ -1649,7 +1649,7 @@
 
   /* compact one-line form of the current result, for pasting inline:
    *   יהוה = י|10| + ה|5| + ו|6| + ה|5| = 26 (Mispar Hechrachi)
-   *   יוד הי ויו הי = 72 (Milui מילוי — scheme Yudin ע״ב) - יהוה */
+   *   יוד הי ויו הי = 72 (Milui Yudin ע״ב) - יהוה */
   function buildShortLine(analysis) {
     if (state.view === 'compare') {
       const both = compareSections();
@@ -1683,8 +1683,8 @@
       }
       return words.join(' · ') +
         (deep ? ` → ${words2.join(' · ')}` : '') + ` = ${total}` +
-        ` (${deep ? "Milui d'Milui מילוי דמילוי" : 'Milui מילוי'}` +
-        ` — scheme ${scheme.name} ${scheme.heb}) - ${state.text.trim()}`;
+        ` (${deep ? "Milui d'Milui" : 'Milui'}` +
+        ` ${scheme.name} ${scheme.heb}) - ${state.text.trim()}`;
     }
     const cipherKey = state.cipher[analysis.script] || G.DEFAULT_CIPHER[analysis.script];
     const spec = G.CIPHERS[analysis.script][cipherKey];
