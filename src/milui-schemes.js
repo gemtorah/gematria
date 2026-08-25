@@ -6,14 +6,15 @@
  * of the Name, and an explicit `spellings` table naming the MILUI_OPTIONS
  * variant for exactly the letters it varies. Every letter NOT listed takes
  * its default spelling — no blanket strategy can sweep in an unintended
- * variant (that is how ד once picked up דלית under AV/SaG; ד is דלת, three
+ * variant (that is how ד once picked up דלית under Yudin schemes; ד is דלת, three
  * letters, under every named scheme). Adding a scheme = adding one entry.
  *
- * The classic schemes come from the fillings of the Name:
- *   AV  ע״ב 72 — yodin:            יוד הי ויו הי
- *   SaG ס״ג 63 — yodin, vav ואו:   יוד הי ואו הי
- *   MaH מ״ה 45 — alphin:           יוד הא ואו הא
- *   BaN ב״ן 52 — hehin:            יוד הה וו הה
+ * The classic schemes are the mater filling policies, each signed by its
+ * value on the Name:
+ *   Yudin     ע״ב 72 — yod-filled:          יוד הי ויו הי
+ *   Yudin-Vav ס״ג 63 — yodin, vav ואו:      יוד הי ואו הי
+ *   Alafin    מ״ה 45 — alef-filled:         יוד הא ואו הא
+ *   Hehin     ב״ן 52 — heh-filled:          יוד הה וו הה
  * ========================================================================== */
 (function (root, factory) {
   if (typeof module !== 'undefined' && module.exports) {
@@ -31,23 +32,29 @@
   const { HEBREW_ORDER, baseLetter } = hebrew;
   const { MILUI_OPTIONS, validateSpelling } = options;
 
+  /* Schemes are named by their alphabet-wide filling policy (yod-filled,
+   * alef-filled, heh-filled letter names), since the cipher applies to any
+   * word. The classic four keep their received signature — the policy's
+   * value on the Name — as the Hebrew label (ע״ב = 72 …); the two
+   * non-classical policies carry descriptive labels instead of coined
+   * signature abbreviations. */
   const SCHEMES = {
-    av:  { name: 'AV',  heb: 'ע״ב', value: 72,
+    av:  { name: 'Yudin', heb: 'ע״ב', value: 72,
            spellings: { 'ה': 'yod', 'ו': 'yod', 'פ': 'yod', 'ת': 'yod' } },
-    sag: { name: 'SaG', heb: 'ס״ג', value: 63,
+    sag: { name: 'Yudin-Vav', heb: 'ס״ג', value: 63,
            spellings: { 'ה': 'yod', 'ו': 'aleph', 'פ': 'yod', 'ת': 'yod' } },
-    mah: { name: 'MaH', heb: 'מ״ה', value: 45,
+    mah: { name: 'Alafin', heb: 'מ״ה', value: 45,
            spellings: { 'ו': 'aleph', 'ת': 'aleph' } },
-    ban: { name: 'BaN', heb: 'ב״ן', value: 52,
+    ban: { name: 'Hehin', heb: 'ב״ן', value: 52,
            spellings: { 'ה': 'heh', 'פ': 'heh' } },
-    nad: { name: 'NaD', heb: 'נ״ד', value: 54,
+    nad: { name: 'Plain-Vav', heb: 'הא–ויו', value: 54,
            spellings: { 'ו': 'yod' } },
-    ad:  { name: 'AD',  heb: 'ע״ד', value: 74,
+    ad:  { name: "Ha'i", heb: 'מילוי האי', value: 74,
            spellings: { 'ה': 'extended', 'ו': 'yod' } },
     standard: { name: 'Standard', heb: 'רגיל', value: null,
                 spellings: { 'ו': 'yod', 'פ': 'heh', 'ת': 'yod' } },
     // reads the user's table below instead of choosing a variant
-    custom: { name: 'Custom', heb: 'מילוי מים', value: null, editable: true },
+    custom: { name: 'Custom', heb: 'מילוי אישי', value: null, editable: true },
   };
 
   /* ---- custom (user-defined) milui ---------------------------------------- */

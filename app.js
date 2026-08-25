@@ -969,7 +969,7 @@
     edit.className = 'scheme-pill edit-pill';
     edit.title = 'Edit the Custom milui spellings';
     edit.innerHTML = '<span class="s-name">✎ Edit</span>' +
-      '<span class="s-heb">מילוי מים</span>';
+      '<span class="s-heb">מילוי אישי</span>';
     edit.addEventListener('click', () => toggleConfig());
     box.appendChild(edit);
   }
@@ -1649,7 +1649,7 @@
 
   /* compact one-line form of the current result, for pasting inline:
    *   יהוה = י|10| + ה|5| + ו|6| + ה|5| = 26 (Mispar Hechrachi)
-   *   יוד הי ויו הי = 72 (Milui מילוי — scheme AV ע״ב) - יהוה */
+   *   יוד הי ויו הי = 72 (Milui מילוי — scheme Yudin ע״ב) - יהוה */
   function buildShortLine(analysis) {
     if (state.view === 'compare') {
       const both = compareSections();

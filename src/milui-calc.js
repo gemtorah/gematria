@@ -104,10 +104,10 @@
     assert(miluiTotal('ד', 'sag') === 434, 'sag: dalet milui != 434');
     assert(miluiTotal('ד', 'av') === 434, 'av: dalet milui != 434');
 
-    // milui d'milui: hand-computed landmark (א → אלף → אלף,למד,פא under MaH
+    // milui d'milui: hand-computed landmark (א → אלף → אלף,למד,פא under Alafin
     // = 111+74+81) plus the defining identity — the filling of the filling
     // equals the plain milui of the concatenated first filling
-    assert(miluiDmiluiValue('א', 'mah') === 266, 'aleph milui² MaH != 266');
+    assert(miluiDmiluiValue('א', 'mah') === 266, 'aleph milui² Alafin != 266');
     for (const skey of Object.keys(SCHEMES)) {
       const filled = graphemes(NAME).map((g) => chooseSpelling(g, skey)).join('');
       assert(miluiDmiluiTotal(NAME, skey) === miluiTotal(filled, skey),
