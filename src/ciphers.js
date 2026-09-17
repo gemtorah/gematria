@@ -87,6 +87,13 @@
       mikum:     { label: 'גימטריה מיקום / Positional Gematria', short: 'position', line: 'Mispar Mikum', map: hebrew.HEBREW_VALUES,
                    transform: core.positional,
                    groups: (letters) => letters.map((l, i) => l + '×' + (i + 1)) },
+      // Modern construction on the Mispar Boneh pattern: the prefixes run out
+      // and return (the expansion is the attested achorayim of a Name; the
+      // name borrows the רצוא ושוב of Ezekiel 1:14 / Sefer Yetzirah 1:6).
+      ratzoVashov: { label: 'רצוא ושוב / Running and Returning', short: 'out and back', line: 'Ratzo VaShov', map: hebrew.HEBREW_VALUES,
+                   transform: core.pyramid,
+                   groups: (letters) => letters.map((l, i) =>
+                     l + '×' + (2 * (letters.length - 1 - i) + 1)) },
     },
     el: {
       isopsephy: { label: 'Greek Isopsephy',  short: 'isopsephy', map: greek.GREEK_VALUES },
@@ -167,6 +174,17 @@
       CIPHERS.he.katanSofit.map) === 86, 'small finals: Genesis 1:1 != 86');
     assert(phraseSum('אלהים', CIPHERS.he.hechrachi.map) === 86,
       'small finals witness: אלהים != 86');
+    // ratzo vashov landmarks: the Name out-and-back is 118 (72 up + 72 back
+    // − 26 at the peak); אלהים lands on 314, the value of שדי
+    const ratzo = (word) => {
+      const { values } = core.getValues(word, CIPHERS.he.ratzoVashov.map);
+      return CIPHERS.he.ratzoVashov.transform(values).reduce((a, b) => a + b, 0);
+    };
+    assert(ratzo('יהוה') === 118, 'ratzo vashov: יהוה != 118');
+    assert(ratzo('אלהים') === 314 && phraseSum('שדי', CIPHERS.he.hechrachi.map) === 314,
+      'ratzo vashov witness: אלהים != שדי (314)');
+    assert(CIPHERS.he.ratzoVashov.groups(Array.from('יהוה')).join(' ') ===
+      'י×7 ה×5 ו×3 ה×1', 'ratzo vashov weight labels broken');
   })();
 
   return { CIPHERS, DEFAULT_CIPHER, detectScript };

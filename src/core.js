@@ -82,6 +82,14 @@
    * so אלהים = 1×1 + 30×2 + 5×3 + 10×4 + 40×5 = 316. */
   const positional = (values) => values.map((v, i) => v * (i + 1));
 
+  /* Out-and-back transform for רצוא ושוב: the word's prefixes run out and
+   * return (י יה יהו יהוה יהו יה י), the full word counted once at the
+   * peak. Letter i appears in 2(n-i)+1 steps — the odd numbers — so the
+   * pyramid holds exactly n² letter-instances and collapses to per-letter
+   * weights: יהוה = 10×7 + 5×5 + 6×3 + 5×1 = 118. */
+  const pyramid = (values) =>
+    values.map((v, i) => v * (2 * (values.length - 1 - i) + 1));
+
   const digitalRoot = (n) => {
     n = Math.abs(n);
     while (n > 9) n = String(n).split('').reduce((a, d) => a + +d, 0);
@@ -96,6 +104,9 @@
     assert(positional([1, 30, 5, 10, 40]).join() === '1,60,15,40,200' &&
       positional([1, 30, 5, 10, 40]).reduce((a, b) => a + b, 0) === 316,
       'positional rule broken');
+    assert(pyramid([10, 5, 6, 5]).join() === '70,25,18,5' &&
+      pyramid([10, 5, 6, 5]).reduce((a, b) => a + b, 0) === 118,
+      'pyramid rule broken');
     assert(digitalRoot(5476) === 4, 'digital root broken');
     const toy = { 'א': 1, 'ב': 2 };
     assert(getValues(ALEPH_SOFIT, toy).values[0] === 1000, 'superscript multiplier broken');
@@ -104,7 +115,7 @@
   })();
 
   return {
-    assert, tiered, stripMarks, graphemes, getValues, cumulative, positional, digitalRoot,
+    assert, tiered, stripMarks, graphemes, getValues, cumulative, positional, pyramid, digitalRoot,
     SUPERSCRIPT_DIGITS, ALEPH_SOFIT, RABATI_MARK, stripSuperscripts,
   };
 });
