@@ -17,7 +17,9 @@
  * lookup — the word-reduced cipher folds each word to the digital root
  * of its reduced letter sum. `building: true` marks running-sum
  * ciphers whose grid view draws every prefix of a word as its own
- * letter/value group (י · יה · יהו · יהוה).
+ * letter/value group (י · יה · יהו · יהוה); an optional `steps` gives a
+ * building cipher its own run of prefix lengths (the out-and-back
+ * 1 2 3 4 3 2 1 of רצוא ושוב) in place of the plain prefix run.
  * ========================================================================== */
 (function (root, factory) {
   if (typeof module !== 'undefined' && module.exports) {
@@ -57,6 +59,16 @@
     return letters.map((l) => (run += l));
   };
 
+  // Out-and-back ciphers run the prefixes up and back down, the full word
+  // once at the peak: `steps` gives the prefix length of every step
+  // (1 2 3 4 3 2 1 for יהוה) and the labels follow (י יה יהו יהוה יהו יה י).
+  const pyramidSteps = (n) => {
+    const up = Array.from({ length: n }, (_, i) => i + 1);
+    return up.concat(up.slice(0, -1).reverse());
+  };
+  const outAndBack = (letters) =>
+    pyramidSteps(letters.length).map((len) => letters.slice(0, len).join(''));
+
   // Word-reduced gematria treats each word as the counted unit: its reduced
   // (mispar katan) letter values are summed and the sum taken to its digital
   // root, so בראשית = 2+2+1+3+1+4 = 13 → 4. The `fold` rule contracts the
@@ -91,9 +103,7 @@
       // and return (the expansion is the attested achorayim of a Name; the
       // name borrows the רצוא ושוב of Ezekiel 1:14 / Sefer Yetzirah 1:6).
       ratzoVashov: { label: 'רצוא ושוב / Running and Returning', short: 'out and back', line: 'Ratzo VaShov', map: hebrew.HEBREW_VALUES,
-                   transform: core.pyramid,
-                   groups: (letters) => letters.map((l, i) =>
-                     l + '×' + (2 * (letters.length - 1 - i) + 1)) },
+                   transform: core.pyramid, building: true, steps: pyramidSteps, groups: outAndBack },
     },
     el: {
       isopsephy: { label: 'Greek Isopsephy',  short: 'isopsephy', map: greek.GREEK_VALUES },
@@ -140,6 +150,8 @@
           'cipher ' + script + '.' + key + ' fold not a function');
         assert(!spec.building || (spec.transform && spec.groups),
           'cipher ' + script + '.' + key + ' building needs transform+groups');
+        assert(!spec.steps || (spec.building && typeof spec.steps === 'function'),
+          'cipher ' + script + '.' + key + ' steps needs building, as a function');
       }
       assert(DEFAULT_CIPHER[script] in entry,
         'default cipher missing for ' + script);
@@ -183,8 +195,9 @@
     assert(ratzo('יהוה') === 118, 'ratzo vashov: יהוה != 118');
     assert(ratzo('אלהים') === 314 && phraseSum('שדי', CIPHERS.he.hechrachi.map) === 314,
       'ratzo vashov witness: אלהים != שדי (314)');
+    assert(pyramidSteps(4).join() === '1,2,3,4,3,2,1', 'pyramid steps broken');
     assert(CIPHERS.he.ratzoVashov.groups(Array.from('יהוה')).join(' ') ===
-      'י×7 ה×5 ו×3 ה×1', 'ratzo vashov weight labels broken');
+      'י יה יהו יהוה יהו יה י', 'ratzo vashov step labels broken');
   })();
 
   return { CIPHERS, DEFAULT_CIPHER, detectScript };

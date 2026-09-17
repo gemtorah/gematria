@@ -180,8 +180,14 @@
         word.values = f.values;
       }
       // building ciphers keep the plain per-letter values too: the grid view
-      // redraws the word as prefix groups built from them (see expandBuilding)
-      if (spec.building) { word.building = true; word.base = values; }
+      // redraws the word as prefix groups built from them (see expandBuilding);
+      // `steps` holds the prefix length of each group (1 2 3 4 for בונה,
+      // 1 2 3 4 3 2 1 for the out-and-back run of רצוא ושוב)
+      if (spec.building) {
+        word.building = true;
+        word.base = values;
+        word.steps = spec.steps ? spec.steps(kept.length) : kept.map((_, i) => i + 1);
+      }
       // cipher-provided labels show how each value arose. Transform steps
       // (י יה יהו / ל×2) replace the letter label; substitution letters
       // (the atbash mirror, the ayak bachar chamber-mate) annotate the
@@ -234,10 +240,10 @@
   function expandBuilding(analysis) {
     if (!analysis.words.some((w) => w.building)) return analysis;
     const words = analysis.words.flatMap((w) => w.building
-      ? w.kept.map((_, i) => ({
+      ? w.steps.map((len, i) => ({
           raw: w.groups[i], script: w.script, accent: w.accent,
-          kept: w.kept.slice(0, i + 1), values: w.base.slice(0, i + 1),
-          fams: w.fams && w.fams.slice(0, i + 1),
+          kept: w.kept.slice(0, len), values: w.base.slice(0, len),
+          fams: w.fams && w.fams.slice(0, len),
         }))
       : [w]);
     return { ...analysis, words };
