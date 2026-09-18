@@ -102,7 +102,7 @@
       // Modern construction on the Mispar Boneh pattern: the prefixes run out
       // and return (the expansion is the attested achorayim of a Name; the
       // name borrows the רצוא ושוב of Ezekiel 1:14 / Sefer Yetzirah 1:6).
-      ratzoVashov: { label: 'רצוא ושוב / Running and Returning', short: 'out and back', line: 'Ratzo VaShov', map: hebrew.HEBREW_VALUES,
+      ratzoVashov: { label: 'רצוא ושוב / Running and Returning', short: 'out and back', line: 'Ratzo VaShov רצוא ושוב', map: hebrew.HEBREW_VALUES,
                    transform: core.pyramid, building: true, steps: pyramidSteps, groups: outAndBack },
     },
     el: {
