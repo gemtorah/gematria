@@ -426,6 +426,22 @@ select:focus { border-color: rgba(217, 171, 74, 0.55); }
   padding: 4px 8px 12px;
 }
 #art-title { font-size: 0.85rem; font-weight: 700; letter-spacing: 0.06em; color: var(--muted); }
+/* the cipher's source text: quote, then citation — a full-width line under the title */
+.art-source {
+  flex-basis: 100%;
+  order: 1;
+  font-family: var(--serif);
+  font-size: 0.9rem;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: baseline;
+}
+.art-source .s-quote { color: var(--gold-deep); }
+.art-source .s-quote::before { content: '״'; }
+.art-source .s-quote::after { content: '״'; }
+.art-source .s-cite { font-size: 0.8rem; }
 .toolbar-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .btn {
   font-family: var(--sans);

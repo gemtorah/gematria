@@ -69,7 +69,7 @@
     return { kept, values };
   }
 
-  /* Running-sum transform for building-value ciphers (מספר בונה): each
+  /* Running-sum transform for building-value ciphers (מספר האחור): each
    * letter counts as itself plus all letters before it in the word, so
    * אחד = 1 + (1+8) + (1+8+4) = 23. */
   const cumulative = (values) => {

@@ -5,8 +5,10 @@
  * Every cipher is a named entry pointing at a table owned by its alphabet
  * module; adding a cipher = adding one registry line, no logic changes.
  * An optional `transform` reshapes a word's letter values after lookup
- * (e.g. the running sum of מספר בונה / building value, or the position
- * multiplier of גימטריה מיקום). An optional `term` names the cipher in
+ * (e.g. the running sum of מספר האחור / achorayim, or the position
+ * multiplier of גימטריה מיקום). An optional `source` cites the text the
+ * cipher's name comes from ({ quote, cite }), shown under the artwork
+ * title and in the report. An optional `term` names the cipher in
  * Abulafia's own vocabulary (שווי / מגרעת / תוספת, the שמ"ת triad of
  * אוצר עדן הגנוז); the studio shows the three side by side whenever one
  * of them is selected. An optional `groups` maps a word's letters
@@ -97,6 +99,12 @@
         values: [core.digitalRoot(values.reduce((a, b) => a + b, 0))] }
     : { kept: [], values: [] });
 
+  // the source line shared by the ciphers named from Abulafia's triad
+  const ABULAFIA = {
+    quote: 'על דרך שווי ומגרעת ותוספת… וכן ענין המספרים כולם',
+    cite: 'ר׳ אברהם אבולעפיה, אוצר עדן הגנוז',
+  };
+
   const CIPHERS = {
     he: {
       // `line` is the compact traditional name used by the one-line copy
@@ -119,10 +127,12 @@
       //   תוספת (addition, backward)   B = Σ (n+1−i)·aᵢ  — the prefix run
       //   שווי  (equality, balanced)   E = (F+B)/2 = (n+1)·Σaᵢ / 2
       // so F + B = 2E is the תוספת ומגרעת ladder. יהוה: 58 · 65 · 72.
-      // The prefix run is the familiar מספר בונה; the suffix run weights
-      // each letter by its position, the familiar גימטריה מיקום.
-      boneh:     { label: 'מספר בונה · תוספת / Building Gematria (backward)', short: 'building', line: 'Mispar Boneh · Tosefet תוספת', map: hebrew.HEBREW_VALUES,
+      // The prefix run is מספר האחור, the achorayim of the Name as the Ari
+      // writes it out (י׳ י״ה יה״ו יהו״ה, עץ חיים שער ל״ד פ״ב); the suffix run
+      // weights each letter by its position, the familiar גימטריה מיקום.
+      boneh:     { label: 'מספר האחור · תוספת / Achorayim Gematria (backward)', short: 'achorayim', line: 'Mispar HaAchor · Tosefet תוספת', map: hebrew.HEBREW_VALUES,
                    term: 'תוספת', termName: 'Tosefet · addition (backward)',
+                   source: { quote: 'י׳ י״ה יה״ו יהו״ה', cite: 'האר״י, עץ חיים, שער ל״ד פ״ב' },
                    transform: core.cumulative, building: true, groups: runningPrefixes },
       mikum:     { label: 'גימטריה מיקום · מגרעת / Positional Gematria (forward)', short: 'position', line: 'Mispar Mikum · Migra\'at מגרעת', map: hebrew.HEBREW_VALUES,
                    term: 'מגרעת', termName: 'Migra\'at · diminution (forward)',
@@ -130,12 +140,15 @@
                    groups: (letters) => letters.map((l, i) => l + '×' + (i + 1)) },
       shivui:    { label: 'שווי / Equality Gematria (balanced)', short: 'equality', line: 'Shivui שווי', map: hebrew.HEBREW_VALUES,
                    term: 'שווי', termName: 'Shivui · equality (balanced)',
+                   source: ABULAFIA,
                    transform: core.balanced,
                    groups: (letters) => letters.map((l) => l + '×' + halfLabel(letters.length + 1)) },
-      // Modern construction on the Mispar Boneh pattern: the prefixes run out
+      // Modern construction on the מספר האחור pattern: the prefixes run out
       // and return (the expansion is the attested achorayim of a Name; the
-      // name borrows the רצוא ושוב of Ezekiel 1:14 / Sefer Yetzirah 1:6).
+      // name is the רצוא ושוב of Ezekiel 1:14, as the Ya'avetz reads it in
+      // ציצים ופרחים).
       ratzoVashov: { label: 'רצוא ושוב / Running and Returning', short: 'out and back', line: 'Ratzo VaShov רצוא ושוב', map: hebrew.HEBREW_VALUES,
+                   source: { quote: 'והחיות רצוא ושוב', cite: 'יחזקאל א׳, י״ד · היעב״ץ, ציצים ופרחים' },
                    transform: core.pyramid, building: true, steps: pyramidSteps, groups: outAndBack },
       // Abulafia, אוצר עדן הגנוז, גנוז חלק ז': the Name has three ways, שווי
       // (the Name whole), תוספת (addition: י יה יהו יהוה) and מגרעת
@@ -144,6 +157,7 @@
       // he calls the secret סלם יעקב, "twelve times the Name" (12×26 = 312),
       // and points to Genesis 28:17.
       tosefetMigraat: { label: 'תוספת ומגרעת / Addition and Diminution', short: 'ladder', line: 'Tosefet uMigra\'at תוספת ומגרעת', map: hebrew.HEBREW_VALUES,
+                   source: ABULAFIA,
                    transform: core.ladder, building: true, steps: ladderSteps, groups: upAndDown },
     },
     el: {
@@ -270,6 +284,9 @@
       2 * triad('shivui', 'יהוה') === ladderSum('יהוה'), 'shemet: F + B != 2E != ladder');
     assert(['boneh', 'mikum', 'shivui'].map((k) => CIPHERS.he[k].term).join(' ') === 'תוספת מגרעת שווי',
       'shemet terms broken');
+    assert(['boneh', 'ratzoVashov', 'tosefetMigraat', 'shivui'].every((k) =>
+      CIPHERS.he[k].source && CIPHERS.he[k].source.quote && CIPHERS.he[k].source.cite),
+      'cipher sources missing');
     assert(CIPHERS.he.shivui.groups(Array.from('יהוה')).join(' ') === 'י×2½ ה×2½ ו×2½ ה×2½' &&
       CIPHERS.he.shivui.groups(Array.from('אדני')).join(' ') === 'א×2½ ד×2½ נ×2½ י×2½' &&
       CIPHERS.he.shivui.groups(Array.from('אלהים')).join(' ') === 'א×3 ל×3 ה×3 י×3 ם×3',

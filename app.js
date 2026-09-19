@@ -183,7 +183,7 @@
       // building ciphers keep the plain per-letter values too: the grid view
       // redraws the word as letter groups sliced from them (see
       // expandBuilding); `steps` holds the [from, to) slice of each group
-      // (the prefixes for בונה, out and back for רצוא ושוב, the prefixes
+      // (the prefixes for האחור, out and back for רצוא ושוב, the prefixes
       // then the suffixes for the ladder of תוספת ומגרעת)
       if (spec.building) {
         word.building = true;
@@ -1397,6 +1397,24 @@
   }
 
   /* ---- main render --------------------------------------------------------------- */
+  // the cipher's source line under the artwork title: the quote its name
+  // comes from, then the citation (מספר האחור ← עץ חיים, רצוא ושוב ← יחזקאל …)
+  function setSource(source) {
+    const node = $('art-source');
+    node.hidden = !source;
+    node.innerHTML = '';
+    if (!source) return;
+    const q = document.createElement('span');
+    q.className = 's-quote';
+    q.dir = 'rtl';
+    q.textContent = source.quote;
+    const c = document.createElement('span');
+    c.className = 's-cite';
+    c.dir = 'rtl';
+    c.textContent = source.cite;
+    node.append(q, c);
+  }
+
   function setBadge(node, analysis) {
     if (analysis.letters) {
       node.textContent = { he: 'עברית Hebrew', el: 'Ελληνικά Greek', en: 'English' }[analysis.script];
@@ -1438,7 +1456,7 @@
 
     // stage
     stage.innerHTML = '';
-    let art = null, title = '', facts = [];
+    let art = null, title = '', facts = [], source = null;
     if (compare) {
       const cards = renderCompareCards();
       if (cards.length) {
@@ -1492,6 +1510,7 @@
         ? renderFolded(analysis)
         : renderGrid(analysis);
       title = spec.label;
+      source = spec.source || null;
       facts = [{ label: 'Total', value: analysis.total }];
       if (analysis.words.length > 1) {
         for (const w of analysis.words) {
@@ -1503,6 +1522,7 @@
       stage.appendChild($('empty-state') || buildEmpty());
       $('art-title').textContent = '';
       $('art-title').style.color = '';
+      setSource(null);
       renderFacts([]);
       renderAtbash(analysis);
       renderShemet(analysis);
@@ -1512,6 +1532,7 @@
     $('art-title').textContent = title;
     $('art-title').style.color =
       (state.view === 'values' && analysis.accent) ? analysis.accent.ui : '';
+    setSource(source);
     renderFacts(facts);
     renderAtbash(analysis);
     renderShemet(analysis);
@@ -1700,6 +1721,7 @@
       const cipherKey = state.cipher[analysis.script] || G.DEFAULT_CIPHER[analysis.script];
       const spec = G.CIPHERS[analysis.script][cipherKey];
       lines.push(`Cipher: ${spec.label}`);
+      if (spec.source) lines.push(`Source: "${spec.source.quote}" (${spec.source.cite})`);
       lines.push(rule);
       for (const word of analysis.words) {
         const sum = word.values.reduce((a, b) => a + b, 0);
