@@ -135,7 +135,7 @@
                    source: { quote: 'י׳ י״ה יה״ו יהו״ה', cite: 'האר״י, עץ חיים, שער ל״ד פ״ב' },
                    transform: core.cumulative, building: true, groups: runningPrefixes },
       mikum:     { label: 'גימטריה מיקום · מגרעת / Positional Gematria (forward)', short: 'position', line: 'Mispar Mikum · Migra\'at מגרעת', map: hebrew.HEBREW_VALUES,
-                   term: 'מגרעת', termName: 'Migra\'at · diminution (forward)',
+                   term: 'מגרעת', termName: 'Migra\'at · subtraction (forward)',
                    transform: core.positional,
                    groups: (letters) => letters.map((l, i) => l + '×' + (i + 1)) },
       shivui:    { label: 'שווי / Equivalence Gematria (balanced)', short: 'equivalence', line: 'Shivui שווי', map: hebrew.HEBREW_VALUES,
