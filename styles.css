@@ -692,6 +692,7 @@ select:focus { border-color: rgba(217, 171, 74, 0.55); }
   gap: 6px 14px;
 }
 .shemet-balance .heb { font-family: var(--serif); color: var(--gold-deep); }
+.shemet-reading { font-size: 0.85rem; color: var(--muted); font-style: italic; font-variant-numeric: tabular-nums; }
 .shemet-words { display: flex; flex-wrap: wrap; gap: 6px; }
 .shemet-word { font-family: var(--serif); font-size: 0.9rem; }
 @media (max-width: 480px) {

@@ -1325,6 +1325,28 @@
     return a && a.n > 1 ? (a.isPrime ? 'prime' : fmtFactors(a.factors)) : '';
   }
 
+  // n is Fibonacci iff 5n² ± 4 is a perfect square
+  const isFibonacci = (n) => {
+    const sq = (x) => { const r = Math.round(Math.sqrt(x)); return r * r === x; };
+    return Number.isInteger(n) && n > 0 && (sq(5 * n * n + 4) || sq(5 * n * n - 4));
+  };
+  // the Fibonacci run from the smallest to the largest prime factor when
+  // every prime factor is Fibonacci and there are at least two of them
+  // (3 · 5 · 13 → 3, 5, 8, 13); null otherwise
+  function fibonacciChain(a) {
+    if (!a || a.n < 2 || a.factors.length < 2) return null;
+    const primes = a.factors.map(([p]) => p);
+    if (!primes.every(isFibonacci)) return null;
+    const lo = primes[0], hi = primes[primes.length - 1];
+    const chain = [];
+    let x = 1, y = 2;
+    while (y <= hi) {
+      if (y >= lo) chain.push(y);
+      [x, y] = [y, x + y];
+    }
+    return chain.length >= 2 ? chain : null;
+  }
+
   function renderShemet(analysis) {
     const card = $('shemet-card'), box = $('shemet');
     const current = state.cipher.he || G.DEFAULT_CIPHER.he;
@@ -1376,6 +1398,31 @@
     }
     bal.innerHTML = parts.map((p) => `<span>${p}</span>`).join('');
     box.appendChild(bal);
+
+    // the three states together: F + E + B = 3E exactly (since F + B = 2E),
+    // with its prime factors — יהוה: 58 + 65 + 72 = 195 = 3 × 65 = 3 × 5 × 13
+    const three = F + E + B;
+    const all = document.createElement('div');
+    all.className = 'shemet-balance';
+    const a3 = G.analyzeNumber(three);
+    all.innerHTML = `<span><span class="heb">מגרעת</span> ${F.toLocaleString()} + <span class="heb">שווי</span> ${E.toLocaleString()}` +
+      ` + <span class="heb">תוספת</span> ${B.toLocaleString()} = ${three.toLocaleString()} = 3 × <span class="heb">שווי</span>` +
+      (a3 && !a3.isPrime && a3.n > 1 ? ` = ${fmtFactors(a3.factors)}` : '') + '</span>';
+    box.appendChild(all);
+
+    // derived reading, kept apart from the arithmetic: when every prime
+    // factor of the three-state total is a Fibonacci number, the factors
+    // sit on the Fibonacci chain — יהוה gives 3 → 5 → 8 → 13 (3 + 5 = 8,
+    // 5 + 8 = 13), with 65 = 5 × 13 and 195 = 3 × 5 × 13
+    const chain = fibonacciChain(a3);
+    if (chain) {
+      const read = document.createElement('div');
+      read.className = 'shemet-reading';
+      read.textContent = `Derived reading — every factor of ${three.toLocaleString()} is a Fibonacci number: ` +
+        chain.map((n) => n.toLocaleString()).join(' → ') + '  (' +
+        chain.slice(2).map((n, i) => `${chain[i]} + ${chain[i + 1]} = ${n}`).join(', ') + ')';
+      box.appendChild(read);
+    }
 
     // several words: each word's own triad, positions restarting per word
     if (analysis.words.length > 1) {
@@ -1763,9 +1810,17 @@
       if (spec.term && analysis.script === 'he') {
         const triad = shemetOf(state.text);
         const [F, E, B] = triad.map((t) => t.analysis.total);
+        const three = F + E + B, a3 = G.analyzeNumber(three);
         lines.push('', 'Abulafia שמ"ת: ' + triad.map((t) =>
           `${t.spec.term} ${t.analysis.total}`).join(' · '),
-          `מגרעת ${F} + תוספת ${B} = ${F + B} = 2 × שווי ${E}`);
+          `מגרעת ${F} + תוספת ${B} = ${F + B} = 2 × שווי ${E}`,
+          `מגרעת ${F} + שווי ${E} + תוספת ${B} = ${three} = 3 × שווי` +
+            (a3 && !a3.isPrime && a3.n > 1 ? ` = ${fmtFactors(a3.factors)}` : ''));
+        const chain = fibonacciChain(a3);
+        if (chain) {
+          lines.push(`Derived reading: every factor of ${three} is a Fibonacci number — ` +
+            chain.join(' → '));
+        }
       }
     }
     lines.push(`Letters: ${analysis.letters} · Words: ${analysis.words.length}`);

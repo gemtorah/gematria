@@ -280,6 +280,9 @@
     assert(triad('mikum', 'יהוה') === 58 && triad('boneh', 'יהוה') === 72 &&
       triad('shivui', 'יהוה') === 65, 'shemet triad on יהוה != 58 · 65 · 72');
     assert(phraseSum('אדני', CIPHERS.he.hechrachi.map) === 65, 'shivui witness: אדני != 65');
+    // the three states of the Name together: 58 + 65 + 72 = 195 = 3 × 65 = 3 × 5 × 13
+    assert(triad('mikum', 'יהוה') + triad('shivui', 'יהוה') + triad('boneh', 'יהוה') === 195 &&
+      195 === 3 * 5 * 13, 'shemet: three states of יהוה != 195');
     assert(triad('mikum', 'יהוה') + triad('boneh', 'יהוה') === 2 * triad('shivui', 'יהוה') &&
       2 * triad('shivui', 'יהוה') === ladderSum('יהוה'), 'shemet: F + B != 2E != ladder');
     assert(['boneh', 'mikum', 'shivui'].map((k) => CIPHERS.he[k].term).join(' ') === 'תוספת מגרעת שווי',
