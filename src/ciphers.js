@@ -18,8 +18,9 @@
  * of its reduced letter sum. `building: true` marks running-sum
  * ciphers whose grid view draws every prefix of a word as its own
  * letter/value group (י · יה · יהו · יהוה); an optional `steps` gives a
- * building cipher its own run of prefix lengths (the out-and-back
- * 1 2 3 4 3 2 1 of רצוא ושוב) in place of the plain prefix run.
+ * building cipher its own run of [from, to) letter slices (the
+ * out-and-back run of רצוא ושוב, the up-then-down ladder of תוספת
+ * ומגרעת) in place of the plain prefix run.
  * ========================================================================== */
 (function (root, factory) {
   if (typeof module !== 'undefined' && module.exports) {
@@ -59,15 +60,26 @@
     return letters.map((l) => (run += l));
   };
 
+  // Multi-run building ciphers describe each step as a [from, to) slice of
+  // the word's letters; the labels are the slices spelled out.
+  const prefixes = (n) => Array.from({ length: n }, (_, i) => [0, i + 1]);
+  const suffixes = (n) => Array.from({ length: n }, (_, i) => [i, n]);
+  const sliceLabels = (steps) => (letters) =>
+    steps(letters.length).map(([from, to]) => letters.slice(from, to).join(''));
+
   // Out-and-back ciphers run the prefixes up and back down, the full word
-  // once at the peak: `steps` gives the prefix length of every step
-  // (1 2 3 4 3 2 1 for יהוה) and the labels follow (י יה יהו יהוה יהו יה י).
+  // once at the peak (י יה יהו יהוה יהו יה י).
   const pyramidSteps = (n) => {
-    const up = Array.from({ length: n }, (_, i) => i + 1);
+    const up = prefixes(n);
     return up.concat(up.slice(0, -1).reverse());
   };
-  const outAndBack = (letters) =>
-    pyramidSteps(letters.length).map((len) => letters.slice(0, len).join(''));
+  const outAndBack = sliceLabels(pyramidSteps);
+
+  // Ladder ciphers build the word up by its prefixes, then take it down by
+  // its suffixes, the full word written in both runs
+  // (י יה יהו יהוה · יהוה הוה וה ה).
+  const ladderSteps = (n) => prefixes(n).concat(suffixes(n));
+  const upAndDown = sliceLabels(ladderSteps);
 
   // Word-reduced gematria treats each word as the counted unit: its reduced
   // (mispar katan) letter values are summed and the sum taken to its digital
@@ -104,6 +116,14 @@
       // name borrows the רצוא ושוב of Ezekiel 1:14 / Sefer Yetzirah 1:6).
       ratzoVashov: { label: 'רצוא ושוב / Running and Returning', short: 'out and back', line: 'Ratzo VaShov רצוא ושוב', map: hebrew.HEBREW_VALUES,
                    transform: core.pyramid, building: true, steps: pyramidSteps, groups: outAndBack },
+      // Abulafia, אוצר עדן הגנוז, גנוז חלק ז': the Name has three ways, שווי
+      // (the Name whole), תוספת (addition: י יה יהו יהוה) and מגרעת
+      // (diminution: יהוה הוה וה ה) — "כדמות צורת אור הירח", waxing and
+      // waning. Addition and diminution together are 72 + 58 = 130 = סלם;
+      // he calls the secret סלם יעקב, "twelve times the Name" (12×26 = 312),
+      // and points to Genesis 28:17.
+      tosefetMigraat: { label: 'תוספת ומגרעת / Addition and Diminution', short: 'ladder', line: 'Tosefet uMigra\'at תוספת ומגרעת', map: hebrew.HEBREW_VALUES,
+                   transform: core.ladder, building: true, steps: ladderSteps, groups: upAndDown },
     },
     el: {
       isopsephy: { label: 'Greek Isopsephy',  short: 'isopsephy', map: greek.GREEK_VALUES },
@@ -195,9 +215,22 @@
     assert(ratzo('יהוה') === 118, 'ratzo vashov: יהוה != 118');
     assert(ratzo('אלהים') === 314 && phraseSum('שדי', CIPHERS.he.hechrachi.map) === 314,
       'ratzo vashov witness: אלהים != שדי (314)');
-    assert(pyramidSteps(4).join() === '1,2,3,4,3,2,1', 'pyramid steps broken');
+    assert(pyramidSteps(4).map((s) => s.join('-')).join() === '0-1,0-2,0-3,0-4,0-3,0-2,0-1',
+      'pyramid steps broken');
     assert(CIPHERS.he.ratzoVashov.groups(Array.from('יהוה')).join(' ') ===
       'י יה יהו יהוה יהו יה י', 'ratzo vashov step labels broken');
+    // tosefet u'migra'at landmarks (Abulafia): the Name up and down is
+    // 72 + 58 = 130, the value of סלם; the ladder is (n+1)× the plain value
+    const ladderSum = (word) => {
+      const { values } = core.getValues(word, CIPHERS.he.tosefetMigraat.map);
+      return CIPHERS.he.tosefetMigraat.transform(values).reduce((a, b) => a + b, 0);
+    };
+    assert(ladderSum('יהוה') === 130 && phraseSum('סלם', CIPHERS.he.hechrachi.map) === 130,
+      'tosefet migraat: יהוה != סלם (130)');
+    assert(ladderSteps(4).map((s) => s.join('-')).join() === '0-1,0-2,0-3,0-4,0-4,1-4,2-4,3-4',
+      'ladder steps broken');
+    assert(CIPHERS.he.tosefetMigraat.groups(Array.from('יהוה')).join(' ') ===
+      'י יה יהו יהוה יהוה הוה וה ה', 'tosefet migraat step labels broken');
   })();
 
   return { CIPHERS, DEFAULT_CIPHER, detectScript };

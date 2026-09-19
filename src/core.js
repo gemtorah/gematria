@@ -90,6 +90,14 @@
   const pyramid = (values) =>
     values.map((v, i) => v * (2 * (values.length - 1 - i) + 1));
 
+  /* Ladder transform for תוספת ומגרעת: the word is built up by its prefixes
+   * (י יה יהו יהוה) and then taken down by its suffixes (יהוה הוה וה ה),
+   * the full word written in both runs as Abulafia lists them. Letter i
+   * sits in n−i prefixes and i+1 suffixes, so every letter carries the
+   * weight n+1 and the ladder is (n+1)× the plain value: יהוה = 5×26 = 130,
+   * the value of סלם. */
+  const ladder = (values) => values.map((v) => v * (values.length + 1));
+
   const digitalRoot = (n) => {
     n = Math.abs(n);
     while (n > 9) n = String(n).split('').reduce((a, d) => a + +d, 0);
@@ -107,6 +115,9 @@
     assert(pyramid([10, 5, 6, 5]).join() === '70,25,18,5' &&
       pyramid([10, 5, 6, 5]).reduce((a, b) => a + b, 0) === 118,
       'pyramid rule broken');
+    assert(ladder([10, 5, 6, 5]).join() === '50,25,30,25' &&
+      ladder([10, 5, 6, 5]).reduce((a, b) => a + b, 0) === 130,
+      'ladder rule broken');
     assert(digitalRoot(5476) === 4, 'digital root broken');
     const toy = { 'א': 1, 'ב': 2 };
     assert(getValues(ALEPH_SOFIT, toy).values[0] === 1000, 'superscript multiplier broken');
@@ -115,7 +126,8 @@
   })();
 
   return {
-    assert, tiered, stripMarks, graphemes, getValues, cumulative, positional, pyramid, digitalRoot,
+    assert, tiered, stripMarks, graphemes, getValues, cumulative, positional, pyramid, ladder,
+    digitalRoot,
     SUPERSCRIPT_DIGITS, ALEPH_SOFIT, RABATI_MARK, stripSuperscripts,
   };
 });

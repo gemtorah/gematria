@@ -45,7 +45,8 @@
    * value cell's color always says which cipher produced the number. */
   const CIPHER_HUES = {
     he: { hechrachi: 237, gadol: 259, siduri: 200, katan: 174, katanSofit: 163, katanMilim: 152,
-          atbash: 188, ayakBachar: 276, boneh: 218, mikum: 291, ratzoVashov: 305 },
+          atbash: 188, ayakBachar: 276, boneh: 218, mikum: 291, ratzoVashov: 305,
+          tosefetMigraat: 330 },
     el: { isopsephy: 237, ordinal: 200, building: 218 },
     en: { sumerian: 237, ordinal: 200, reverse: 188, reduction: 174,
           isopsephy: 152, building: 218, buildingSumerian: 259 },
@@ -180,13 +181,14 @@
         word.values = f.values;
       }
       // building ciphers keep the plain per-letter values too: the grid view
-      // redraws the word as prefix groups built from them (see expandBuilding);
-      // `steps` holds the prefix length of each group (1 2 3 4 for בונה,
-      // 1 2 3 4 3 2 1 for the out-and-back run of רצוא ושוב)
+      // redraws the word as letter groups sliced from them (see
+      // expandBuilding); `steps` holds the [from, to) slice of each group
+      // (the prefixes for בונה, out and back for רצוא ושוב, the prefixes
+      // then the suffixes for the ladder of תוספת ומגרעת)
       if (spec.building) {
         word.building = true;
         word.base = values;
-        word.steps = spec.steps ? spec.steps(kept.length) : kept.map((_, i) => i + 1);
+        word.steps = spec.steps ? spec.steps(kept.length) : kept.map((_, i) => [0, i + 1]);
       }
       // cipher-provided labels show how each value arose. Transform steps
       // (י יה יהו / ל×2) replace the letter label; substitution letters
@@ -240,10 +242,10 @@
   function expandBuilding(analysis) {
     if (!analysis.words.some((w) => w.building)) return analysis;
     const words = analysis.words.flatMap((w) => w.building
-      ? w.steps.map((len, i) => ({
+      ? w.steps.map(([from, to], i) => ({
           raw: w.groups[i], script: w.script, accent: w.accent,
-          kept: w.kept.slice(0, len), values: w.base.slice(0, len),
-          fams: w.fams && w.fams.slice(0, len),
+          kept: w.kept.slice(from, to), values: w.base.slice(from, to),
+          fams: w.fams && w.fams.slice(from, to),
         }))
       : [w]);
     return { ...analysis, words };
