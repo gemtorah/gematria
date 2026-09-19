@@ -6,7 +6,10 @@
  * module; adding a cipher = adding one registry line, no logic changes.
  * An optional `transform` reshapes a word's letter values after lookup
  * (e.g. the running sum of מספר בונה / building value, or the position
- * multiplier of גימטריה מיקום). An optional `groups` maps a word's letters
+ * multiplier of גימטריה מיקום). An optional `term` names the cipher in
+ * Abulafia's own vocabulary (שווי / מגרעת / תוספת, the שמ"ת triad of
+ * אוצר עדן הגנוז); the studio shows the three side by side whenever one
+ * of them is selected. An optional `groups` maps a word's letters
  * to per-letter labels showing how each value arose: transform steps
  * (י יה יהו / ל×2) or, with `substitution: true`, the letter the cipher
  * actually reads (atbash mirrors יהוה into מצפץ) shown alongside the
@@ -81,6 +84,9 @@
   const ladderSteps = (n) => prefixes(n).concat(suffixes(n));
   const upAndDown = sliceLabels(ladderSteps);
 
+  // שווי weights every letter by (n+1)/2, written 2½ rather than 2.5
+  const halfLabel = (m) => (m % 2 ? Math.floor(m / 2) + '½' : String(m / 2));
+
   // Word-reduced gematria treats each word as the counted unit: its reduced
   // (mispar katan) letter values are summed and the sum taken to its digital
   // root, so בראשית = 2+2+1+3+1+4 = 13 → 4. The `fold` rule contracts the
@@ -106,11 +112,26 @@
                    substitution: true, groups: atbashLetters },
       ayakBachar: { label: 'אי״ק בכ״ר / Ayak Bachar',          short: 'nine chambers', line: 'Ayak Bachar', map: hebrew.HEBREW_AYAK_BACHAR,
                    substitution: true, groups: ayakLetters, families: chamberNames },
-      boneh:     { label: 'מספר בונה / Building Gematria',     short: 'building', line: 'Mispar Boneh', map: hebrew.HEBREW_VALUES,
+      // Abulafia's שמ"ת triad (אוצר עדן הגנוז, גנוז חלק ז'): letters and
+      // numbers work "על דרך שווי ומגרעת ותוספת", balanced like 1–2–3 with 2
+      // as the equalizing middle. For letter values a₁…aₙ:
+      //   מגרעת (diminution, forward)  F = Σ i·aᵢ        — the suffix run
+      //   תוספת (addition, backward)   B = Σ (n+1−i)·aᵢ  — the prefix run
+      //   שווי  (equality, balanced)   E = (F+B)/2 = (n+1)·Σaᵢ / 2
+      // so F + B = 2E is the תוספת ומגרעת ladder. יהוה: 58 · 65 · 72.
+      // The prefix run is the familiar מספר בונה; the suffix run weights
+      // each letter by its position, the familiar גימטריה מיקום.
+      boneh:     { label: 'מספר בונה · תוספת / Building Gematria (backward)', short: 'building', line: 'Mispar Boneh · Tosefet תוספת', map: hebrew.HEBREW_VALUES,
+                   term: 'תוספת', termName: 'Tosefet · addition (backward)',
                    transform: core.cumulative, building: true, groups: runningPrefixes },
-      mikum:     { label: 'גימטריה מיקום / Positional Gematria', short: 'position', line: 'Mispar Mikum', map: hebrew.HEBREW_VALUES,
+      mikum:     { label: 'גימטריה מיקום · מגרעת / Positional Gematria (forward)', short: 'position', line: 'Mispar Mikum · Migra\'at מגרעת', map: hebrew.HEBREW_VALUES,
+                   term: 'מגרעת', termName: 'Migra\'at · diminution (forward)',
                    transform: core.positional,
                    groups: (letters) => letters.map((l, i) => l + '×' + (i + 1)) },
+      shivui:    { label: 'שווי / Equality Gematria (balanced)', short: 'equality', line: 'Shivui שווי', map: hebrew.HEBREW_VALUES,
+                   term: 'שווי', termName: 'Shivui · equality (balanced)',
+                   transform: core.balanced,
+                   groups: (letters) => letters.map((l) => l + '×' + halfLabel(letters.length + 1)) },
       // Modern construction on the Mispar Boneh pattern: the prefixes run out
       // and return (the expansion is the attested achorayim of a Name; the
       // name borrows the רצוא ושוב of Ezekiel 1:14 / Sefer Yetzirah 1:6).
@@ -236,6 +257,23 @@
       'ladder steps broken');
     assert(CIPHERS.he.tosefetMigraat.groups(Array.from('יהוה')).join(' ') ===
       'י יה יהו יהוה יהוה הוה וה ה', 'tosefet migraat step labels broken');
+    // Abulafia's שמ"ת triad on the Name: מגרעת 58, שווי 65 (= אדני), תוספת
+    // 72, and diminution + addition = 130, twice the equality and the ladder
+    const triad = (key, word) => {
+      const spec = CIPHERS.he[key];
+      return spec.transform(core.getValues(word, spec.map).values).reduce((a, b) => a + b, 0);
+    };
+    assert(triad('mikum', 'יהוה') === 58 && triad('boneh', 'יהוה') === 72 &&
+      triad('shivui', 'יהוה') === 65, 'shemet triad on יהוה != 58 · 65 · 72');
+    assert(phraseSum('אדני', CIPHERS.he.hechrachi.map) === 65, 'shivui witness: אדני != 65');
+    assert(triad('mikum', 'יהוה') + triad('boneh', 'יהוה') === 2 * triad('shivui', 'יהוה') &&
+      2 * triad('shivui', 'יהוה') === ladderSum('יהוה'), 'shemet: F + B != 2E != ladder');
+    assert(['boneh', 'mikum', 'shivui'].map((k) => CIPHERS.he[k].term).join(' ') === 'תוספת מגרעת שווי',
+      'shemet terms broken');
+    assert(CIPHERS.he.shivui.groups(Array.from('יהוה')).join(' ') === 'י×2½ ה×2½ ו×2½ ה×2½' &&
+      CIPHERS.he.shivui.groups(Array.from('אדני')).join(' ') === 'א×2½ ד×2½ נ×2½ י×2½' &&
+      CIPHERS.he.shivui.groups(Array.from('אלהים')).join(' ') === 'א×3 ל×3 ה×3 י×3 ם×3',
+      'shivui step labels broken');
     // Greek ladder witness: Ιησους is 888 in isopsephy, so its six-letter
     // ladder is 7 × 888 = 6216
     assert(phraseSum('Ιησους', CIPHERS.el.isopsephy.map) === 888 &&
@@ -243,5 +281,8 @@
         .reduce((a, b) => a + b, 0) === 6216, 'greek ladder: Ιησους != 6216');
   })();
 
-  return { CIPHERS, DEFAULT_CIPHER, detectScript };
+  // Abulafia's triad in the order the studio lays it out: מגרעת · שווי · תוספת
+  const SHEMET = ['mikum', 'shivui', 'boneh'];
+
+  return { CIPHERS, DEFAULT_CIPHER, SHEMET, detectScript };
 });

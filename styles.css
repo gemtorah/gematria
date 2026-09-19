@@ -641,6 +641,47 @@ select:focus { border-color: rgba(217, 171, 74, 0.55); }
 .atbash-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .atbash-chip { font-family: var(--serif); font-size: 0.9rem; }
 
+.shemet { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+.shemet-cells {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.shemet-cell {
+  background: rgba(20, 16, 42, 0.04);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  text-align: center;
+  font: inherit;
+  color: inherit;
+}
+.shemet-cell:hover { border-color: var(--gold-deep); }
+.shemet-cell .s-term { font-family: var(--serif); font-size: 1.35rem; font-weight: 700; color: var(--gold-deep); }
+.shemet-cell .s-name { font-size: 0.78rem; color: var(--muted); }
+.shemet-cell .s-value { font-size: 1.5rem; font-weight: 800; color: var(--teal); font-variant-numeric: tabular-nums; }
+.shemet-cell .s-note { font-size: 0.8rem; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+.shemet-cell.active .s-term { color: inherit; }
+.shemet-balance {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+.shemet-balance .heb { font-family: var(--serif); color: var(--gold-deep); }
+.shemet-words { display: flex; flex-wrap: wrap; gap: 6px; }
+.shemet-word { font-family: var(--serif); font-size: 0.9rem; }
+@media (max-width: 480px) {
+  .shemet-cells { grid-template-columns: 1fr; }
+}
+
 footer {
   margin-top: 40px;
   text-align: center;

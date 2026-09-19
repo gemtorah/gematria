@@ -98,6 +98,14 @@
    * the value of סלם. */
   const ladder = (values) => values.map((v) => v * (values.length + 1));
 
+  /* Balanced transform for שווי (equality): the mean of the forward
+   * (מגרעת, Σ i·aᵢ) and backward (תוספת, Σ (n+1−i)·aᵢ) positional runs.
+   * Their weights i and n+1−i average to (n+1)/2 for every letter, so the
+   * result is half the ladder: יהוה = 26 × 5/2 = 65, the value of אדני.
+   * Half-values appear when n+1 is odd (each letter carries a weight of
+   * k½); the phrase total is whole whenever (n+1)·Σaᵢ is even. */
+  const balanced = (values) => values.map((v) => v * (values.length + 1) / 2);
+
   const digitalRoot = (n) => {
     n = Math.abs(n);
     while (n > 9) n = String(n).split('').reduce((a, d) => a + +d, 0);
@@ -118,6 +126,9 @@
     assert(ladder([10, 5, 6, 5]).join() === '50,25,30,25' &&
       ladder([10, 5, 6, 5]).reduce((a, b) => a + b, 0) === 130,
       'ladder rule broken');
+    assert(balanced([10, 5, 6, 5]).join() === '25,12.5,15,12.5' &&
+      balanced([10, 5, 6, 5]).reduce((a, b) => a + b, 0) === 65,
+      'balanced rule broken');
     assert(digitalRoot(5476) === 4, 'digital root broken');
     const toy = { 'א': 1, 'ב': 2 };
     assert(getValues(ALEPH_SOFIT, toy).values[0] === 1000, 'superscript multiplier broken');
@@ -127,7 +138,7 @@
 
   return {
     assert, tiered, stripMarks, graphemes, getValues, cumulative, positional, pyramid, ladder,
-    digitalRoot,
+    balanced, digitalRoot,
     SUPERSCRIPT_DIGITS, ALEPH_SOFIT, RABATI_MARK, stripSuperscripts,
   };
 });

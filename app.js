@@ -45,7 +45,7 @@
    * value cell's color always says which cipher produced the number. */
   const CIPHER_HUES = {
     he: { hechrachi: 237, gadol: 259, siduri: 200, katan: 174, katanSofit: 163, katanMilim: 152,
-          atbash: 188, ayakBachar: 276, boneh: 218, mikum: 291, ratzoVashov: 305,
+          atbash: 188, ayakBachar: 276, boneh: 218, mikum: 291, shivui: 345, ratzoVashov: 305,
           tosefetMigraat: 330 },
     el: { isopsephy: 237, ordinal: 200, building: 218, ladder: 330 },
     en: { sumerian: 237, ordinal: 200, reverse: 188, reduction: 174,
@@ -1305,6 +1305,97 @@
     }
   }
 
+  /* ---- Abulafia's שמ"ת triad: מגרעת · שווי · תוספת ---------------------------- */
+  /* With any one of the three selected on a Hebrew phrase, all three totals
+   * sit side by side (the chosen one in its cipher color) over the balance
+   * that holds word by word: מגרעת + תוספת = 2 × שווי. Each cell notes its
+   * ratio to the regular value when that is a whole or half number (שווי is
+   * always (n+1)/2 × regular for a single word), else its prime factors. */
+  const halfFmt = (r) => (Number.isInteger(r) ? String(r)
+    : Number.isInteger(r * 2) ? (Math.floor(r) ? Math.floor(r) : '') + '½' : null);
+
+  function shemetOf(text) {
+    return G.SHEMET.map((key) => ({ key, spec: G.CIPHERS.he[key], analysis: analyse(text, { he: key }) }));
+  }
+
+  function shemetNote(total, regular) {
+    const r = regular ? halfFmt(total / regular) : null;
+    if (r) return `${r} × ${regular.toLocaleString()} regular`;
+    const a = G.analyzeNumber(total);
+    return a && a.n > 1 ? (a.isPrime ? 'prime' : fmtFactors(a.factors)) : '';
+  }
+
+  function renderShemet(analysis) {
+    const card = $('shemet-card'), box = $('shemet');
+    const current = state.cipher.he || G.DEFAULT_CIPHER.he;
+    const show = state.view === 'values' && analysis.script === 'he' && !!analysis.letters &&
+      G.SHEMET.includes(current);
+    card.hidden = !show;
+    box.innerHTML = '';
+    if (!show) return;
+    const triad = shemetOf(state.text);
+    const regular = analyse(state.text, { he: 'hechrachi' }).total;
+
+    const cells = document.createElement('div');
+    cells.className = 'shemet-cells';
+    for (const { key, spec, analysis: a } of triad) {
+      const cell = document.createElement('button');
+      cell.type = 'button';
+      cell.className = 'shemet-cell' + (key === current ? ' active' : '');
+      cell.title = spec.label;
+      const accent = accentFor('he', key);
+      if (accent) {
+        cell.style.borderColor = key === current ? accent.ui : accent.uiSoft;
+        cell.style.color = accent.ui;
+        if (key === current) cell.style.background = accent.uiBg;
+      }
+      cell.innerHTML = `<span class="s-term">${spec.term}</span>` +
+        `<span class="s-name">${spec.termName}</span>` +
+        `<span class="s-value">${a.total.toLocaleString()}</span>` +
+        `<span class="s-note">${shemetNote(a.total, regular)}</span>`;
+      if (accent) cell.querySelector('.s-value').style.color = accent.ui;
+      cell.addEventListener('click', () => {
+        state.cipher.he = key;
+        syncCipherSelect('he');
+        render();
+      });
+      cells.appendChild(cell);
+    }
+    box.appendChild(cells);
+
+    // the balance: מגרעת + תוספת = 2 × שווי, and for one word (n+1) × regular
+    const [F, E, B] = triad.map((t) => t.analysis.total);
+    const bal = document.createElement('div');
+    bal.className = 'shemet-balance';
+    const parts = [
+      `<span class="heb">מגרעת</span> ${F.toLocaleString()} + <span class="heb">תוספת</span> ${B.toLocaleString()}` +
+        ` = ${(F + B).toLocaleString()} = 2 × <span class="heb">שווי</span> ${E.toLocaleString()}`,
+    ];
+    if (analysis.words.length === 1 && regular) {
+      parts.push(`= ${analysis.letters + 1} × ${regular.toLocaleString()} (n + 1 = ${analysis.letters + 1})`);
+    }
+    bal.innerHTML = parts.map((p) => `<span>${p}</span>`).join('');
+    box.appendChild(bal);
+
+    // several words: each word's own triad, positions restarting per word
+    if (analysis.words.length > 1) {
+      const row = document.createElement('div');
+      row.className = 'shemet-words';
+      row.dir = 'rtl';
+      analysis.words.forEach((w, i) => {
+        const sums = triad.map((t) => {
+          const tw = t.analysis.words[i];
+          return tw ? tw.values.reduce((x, y) => x + y, 0) : 0;
+        });
+        const c = document.createElement('span');
+        c.className = 'fact-chip shemet-word';
+        c.textContent = `${w.raw} — ${sums.map((s) => s.toLocaleString()).join(' · ')}`;
+        row.appendChild(c);
+      });
+      box.appendChild(row);
+    }
+  }
+
   /* ---- main render --------------------------------------------------------------- */
   function setBadge(node, analysis) {
     if (analysis.letters) {
@@ -1414,6 +1505,7 @@
       $('art-title').style.color = '';
       renderFacts([]);
       renderAtbash(analysis);
+      renderShemet(analysis);
       return;
     }
     stage.appendChild(art);
@@ -1422,6 +1514,7 @@
       (state.view === 'values' && analysis.accent) ? analysis.accent.ui : '';
     renderFacts(facts);
     renderAtbash(analysis);
+    renderShemet(analysis);
   }
 
   function buildEmpty() {
@@ -1644,6 +1737,14 @@
       lines.push(`Total: ${analysis.total}`,
         ...numberLines(analysis.total),
         `Digital root: ${G.digitalRoot(analysis.total)}`);
+      // Abulafia's triad: the other two ways beside the chosen one
+      if (spec.term && analysis.script === 'he') {
+        const triad = shemetOf(state.text);
+        const [F, E, B] = triad.map((t) => t.analysis.total);
+        lines.push('', 'Abulafia שמ"ת: ' + triad.map((t) =>
+          `${t.spec.term} ${t.analysis.total}`).join(' · '),
+          `מגרעת ${F} + תוספת ${B} = ${F + B} = 2 × שווי ${E}`);
+      }
     }
     lines.push(`Letters: ${analysis.letters} · Words: ${analysis.words.length}`);
     // milui spellings are summed with the standard table, so its key applies
