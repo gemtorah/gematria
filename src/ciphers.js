@@ -123,9 +123,9 @@
       // Abulafia's שמ"ת triad (אוצר עדן הגנוז, גנוז חלק ז'): letters and
       // numbers work "על דרך שווי ומגרעת ותוספת", balanced like 1–2–3 with 2
       // as the equalizing middle. For letter values a₁…aₙ:
-      //   מגרעת (diminution, forward)  F = Σ i·aᵢ        — the suffix run
+      //   מגרעת (subtraction, forward)  F = Σ i·aᵢ        — the suffix run
       //   תוספת (addition, backward)   B = Σ (n+1−i)·aᵢ  — the prefix run
-      //   שווי  (equality, balanced)   E = (F+B)/2 = (n+1)·Σaᵢ / 2
+      //   שווי  (equivalence, balanced)   E = (F+B)/2 = (n+1)·Σaᵢ / 2
       // so F + B = 2E is the תוספת ומגרעת ladder. יהוה: 58 · 65 · 72.
       // The prefix run is מספר האחור, the achorayim of the Name as the Ari
       // writes it out (י׳ י״ה יה״ו יהו״ה, עץ חיים שער ל״ד פ״ב); the suffix run
@@ -138,8 +138,8 @@
                    term: 'מגרעת', termName: 'Migra\'at · diminution (forward)',
                    transform: core.positional,
                    groups: (letters) => letters.map((l, i) => l + '×' + (i + 1)) },
-      shivui:    { label: 'שווי / Equality Gematria (balanced)', short: 'equality', line: 'Shivui שווי', map: hebrew.HEBREW_VALUES,
-                   term: 'שווי', termName: 'Shivui · equality (balanced)',
+      shivui:    { label: 'שווי / Equivalence Gematria (balanced)', short: 'equivalence', line: 'Shivui שווי', map: hebrew.HEBREW_VALUES,
+                   term: 'שווי', termName: 'Shivui · equivalence (balanced)',
                    source: ABULAFIA,
                    transform: core.balanced,
                    groups: (letters) => letters.map((l) => l + '×' + halfLabel(letters.length + 1)) },
@@ -156,7 +156,7 @@
       // waning. Addition and diminution together are 72 + 58 = 130 = סלם;
       // he calls the secret סלם יעקב, "twelve times the Name" (12×26 = 312),
       // and points to Genesis 28:17.
-      tosefetMigraat: { label: 'תוספת ומגרעת / Addition and Diminution', short: 'ladder', line: 'Tosefet uMigra\'at תוספת ומגרעת', map: hebrew.HEBREW_VALUES,
+      tosefetMigraat: { label: 'תוספת ומגרעת / Addition and Subtraction', short: 'ladder', line: 'Tosefet uMigra\'at תוספת ומגרעת', map: hebrew.HEBREW_VALUES,
                    source: ABULAFIA,
                    transform: core.ladder, building: true, steps: ladderSteps, groups: upAndDown },
     },

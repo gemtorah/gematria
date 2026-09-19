@@ -98,7 +98,7 @@
    * the value of סלם. */
   const ladder = (values) => values.map((v) => v * (values.length + 1));
 
-  /* Balanced transform for שווי (equality): the mean of the forward
+  /* Balanced transform for שווי (equivalence): the mean of the forward
    * (מגרעת, Σ i·aᵢ) and backward (תוספת, Σ (n+1−i)·aᵢ) positional runs.
    * Their weights i and n+1−i average to (n+1)/2 for every letter, so the
    * result is half the ladder: יהוה = 26 × 5/2 = 65, the value of אדני.
