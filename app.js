@@ -47,7 +47,7 @@
     he: { hechrachi: 237, gadol: 259, siduri: 200, katan: 174, katanSofit: 163, katanMilim: 152,
           atbash: 188, ayakBachar: 276, boneh: 218, mikum: 291, ratzoVashov: 305,
           tosefetMigraat: 330 },
-    el: { isopsephy: 237, ordinal: 200, building: 218 },
+    el: { isopsephy: 237, ordinal: 200, building: 218, ladder: 330 },
     en: { sumerian: 237, ordinal: 200, reverse: 188, reduction: 174,
           isopsephy: 152, building: 218, buildingSumerian: 259 },
   };

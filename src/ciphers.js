@@ -130,6 +130,11 @@
       ordinal:   { label: 'Greek Ordinal',    short: 'ordinal',   map: greek.GREEK_ORDINALS },
       building:  { label: 'Greek Building Gematria', short: 'building', map: greek.GREEK_VALUES,
                    transform: core.cumulative, building: true, groups: runningPrefixes },
+      // the Hebrew תוספת ומגרעת ladder read with isopsephy values; named for
+      // κλίμαξ, the LXX's word for Jacob's ladder (Genesis 28:12), the
+      // figure Abulafia ties the two runs to
+      ladder:    { label: 'Greek Ladder Gematria (κλίμαξ)', short: 'ladder', line: 'Greek Ladder κλίμαξ', map: greek.GREEK_VALUES,
+                   transform: core.ladder, building: true, steps: ladderSteps, groups: upAndDown },
     },
     en: {
       sumerian:  { label: 'English Sumerian',        short: 'A=6',      map: english.ENGLISH_SUMERIAN },
@@ -231,6 +236,11 @@
       'ladder steps broken');
     assert(CIPHERS.he.tosefetMigraat.groups(Array.from('יהוה')).join(' ') ===
       'י יה יהו יהוה יהוה הוה וה ה', 'tosefet migraat step labels broken');
+    // Greek ladder witness: Ιησους is 888 in isopsephy, so its six-letter
+    // ladder is 7 × 888 = 6216
+    assert(phraseSum('Ιησους', CIPHERS.el.isopsephy.map) === 888 &&
+      CIPHERS.el.ladder.transform(core.getValues('Ιησους', CIPHERS.el.ladder.map).values)
+        .reduce((a, b) => a + b, 0) === 6216, 'greek ladder: Ιησους != 6216');
   })();
 
   return { CIPHERS, DEFAULT_CIPHER, detectScript };
