@@ -1922,10 +1922,14 @@
         `${word.building ? '→' : '='} ${detail(word)}${primeTag(analysis.total)} (${name})`;
     }
     // per-word details joined by ·, then the grand total behind an arrow so
-    // it can't be misread as part of the last word's "= sum"
+    // it can't be misread as part of the last word's "= sum". A phrase of
+    // building words lists just the runs, so a single "= total" closes it:
+    //   בית אל → ב בי בית · א אל = 466
+    const building = analysis.words.every((w) => w.building);
     const sep = analysis.words.some((w) => w.building) ? '→' : '=';
-    return `${state.text.trim()} ${sep} ${analysis.words.map(detail).join(' · ')}` +
-      ` → ${analysis.total}${primeTag(analysis.total)} (${name})`;
+    const parts = analysis.words.map((w) => (building ? w.groups.join(' ') : detail(w)));
+    return `${state.text.trim()} ${sep} ${parts.join(' · ')}` +
+      ` ${building ? '=' : '→'} ${analysis.total}${primeTag(analysis.total)} (${name})`;
   }
 
   $('dl-png').addEventListener('click', () => {
