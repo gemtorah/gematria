@@ -1844,14 +1844,20 @@
 
   /* compact one-line form of the current result, for pasting inline:
    *   יהוה = י|10| + ה|5| + ו|6| + ה|5| = 26 (Mispar Hechrachi)
-   *   יוד הי ויו הי = 72 (Milui Yudin ע״ב) - יהוה */
+   *   יוד הי ויו הי = 72 (Milui Yudin ע״ב) - יהוה
+   * a prime total is tagged with its index: ג = ג|3| = 3 [2nd prime] (…) */
+  const primeTag = (n) => {
+    const a = G.analyzeNumber(n);
+    if (!a || !a.isPrime) return '';
+    return a.primeIndex ? ` [${G.ordinal(a.primeIndex)} prime]` : ' [prime]';
+  };
   function buildShortLine(analysis) {
     if (state.view === 'compare') {
       const both = compareSections();
       const sections = visibleCompareSections(both.sections);
       return sections.map((s) => {
         const body = s.results.map((r, i) =>
-          `${both.entries[i].text.trim()} = ${r.total}`).join(' · ');
+          `${both.entries[i].text.trim()} = ${r.total}${primeTag(r.total)}`).join(' · ');
         const eq = s.results.length > 1 &&
           s.results.every((r) => r.total === s.results[0].total) ? ' → equal' : '';
         return `${body}${eq} (${s.label})`;
@@ -1877,7 +1883,7 @@
         if (spelt.length) { words.push(spelt.join(' ')); words2.push(spelt2.join(' ')); }
       }
       return words.join(' · ') +
-        (deep ? ` → ${words2.join(' · ')}` : '') + ` = ${total}` +
+        (deep ? ` → ${words2.join(' · ')}` : '') + ` = ${total}${primeTag(total)}` +
         ` (${deep ? "Milui d'Milui" : 'Milui'}` +
         ` ${scheme.name} ${scheme.heb}) - ${state.text.trim()}`;
     }
@@ -1913,13 +1919,13 @@
     if (analysis.words.length === 1) {
       const word = analysis.words[0];
       return `${word.raw} ` + (word.subs ? `← ${word.subs.join('')} ` : '') +
-        `${word.building ? '→' : '='} ${detail(word)} (${name})`;
+        `${word.building ? '→' : '='} ${detail(word)}${primeTag(analysis.total)} (${name})`;
     }
     // per-word details joined by ·, then the grand total behind an arrow so
     // it can't be misread as part of the last word's "= sum"
     const sep = analysis.words.some((w) => w.building) ? '→' : '=';
     return `${state.text.trim()} ${sep} ${analysis.words.map(detail).join(' · ')}` +
-      ` → ${analysis.total} (${name})`;
+      ` → ${analysis.total}${primeTag(analysis.total)} (${name})`;
   }
 
   $('dl-png').addEventListener('click', () => {
