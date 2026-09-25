@@ -1857,9 +1857,9 @@
       const sections = visibleCompareSections(both.sections);
       return sections.map((s) => {
         const body = s.results.map((r, i) =>
-          `${both.entries[i].text.trim()} = ${r.total}${primeTag(r.total)}`).join(' · ');
+          `${both.entries[i].text.trim()} = ${r.total}${primeTag(r.total)}`).join(' ');
         const eq = s.results.length > 1 &&
-          s.results.every((r) => r.total === s.results[0].total) ? ' → equal' : '';
+          s.results.every((r) => r.total === s.results[0].total) ? ' - equal' : '';
         return `${body}${eq} (${s.label})`;
       }).join(' | ');
     }
@@ -1882,8 +1882,8 @@
         }
         if (spelt.length) { words.push(spelt.join(' ')); words2.push(spelt2.join(' ')); }
       }
-      return words.join(' · ') +
-        (deep ? ` → ${words2.join(' · ')}` : '') + ` = ${total}${primeTag(total)}` +
+      return words.join(' ') +
+        (deep ? ` - ${words2.join(' ')}` : '') + ` = ${total}${primeTag(total)}` +
         ` (${deep ? "Milui d'Milui" : 'Milui'}` +
         ` ${scheme.name} ${scheme.heb}) - ${state.text.trim()}`;
     }
@@ -1910,26 +1910,26 @@
       // word-reduced: letters with pre-fold values, then the root contraction
       if (word.folded) {
         const pre = word.folded.values.reduce((a, b) => a + b, 0);
-        return `${chain(word)} = ${pre}` + (pre === sum ? '' : ` → ${sum}`);
+        return `${chain(word)} = ${pre}` + (pre === sum ? '' : ` - ${sum}`);
       }
       return `${chain(word)} = ${sum}`;
     };
     // building ciphers transform the word into its prefix run, so the word
-    // connects to its derivation with an arrow rather than an equals sign
+    // connects to its derivation with a dash rather than an equals sign
     if (analysis.words.length === 1) {
       const word = analysis.words[0];
       return `${word.raw} ` + (word.subs ? `← ${word.subs.join('')} ` : '') +
-        `${word.building ? '→' : '='} ${detail(word)}${primeTag(analysis.total)} (${name})`;
+        `${word.building ? '-' : '='} ${detail(word)}${primeTag(analysis.total)} (${name})`;
     }
-    // per-word details joined by ·, then the grand total behind an arrow so
+    // per-word details joined by spaces, then the grand total behind a dash so
     // it can't be misread as part of the last word's "= sum". A phrase of
     // building words lists just the runs, so a single "= total" closes it:
-    //   בית אל → ב בי בית · א אל = 466
+    //   בית אל - ב בי בית א אל = 466
     const building = analysis.words.every((w) => w.building);
-    const sep = analysis.words.some((w) => w.building) ? '→' : '=';
+    const sep = analysis.words.some((w) => w.building) ? '-' : '=';
     const parts = analysis.words.map((w) => (building ? w.groups.join(' ') : detail(w)));
-    return `${state.text.trim()} ${sep} ${parts.join(' · ')}` +
-      ` ${building ? '=' : '→'} ${analysis.total}${primeTag(analysis.total)} (${name})`;
+    return `${state.text.trim()} ${sep} ${parts.join(' ')}` +
+      ` ${building ? '=' : '-'} ${analysis.total}${primeTag(analysis.total)} (${name})`;
   }
 
   $('dl-png').addEventListener('click', () => {

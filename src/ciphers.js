@@ -130,11 +130,11 @@
       // The prefix run is מספר האחור, the achorayim of the Name as the Ari
       // writes it out (י׳ י״ה יה״ו יהו״ה, עץ חיים שער ל״ד פ״ב); the suffix run
       // weights each letter by its position, the familiar גימטריה מיקום.
-      boneh:     { label: 'מספר האחור · תוספת / Achorayim Gematria (backward)', short: 'achorayim', line: 'Mispar HaAchor · Tosefet תוספת', map: hebrew.HEBREW_VALUES,
+      boneh:     { label: 'מספר האחור · תוספת / Achorayim Gematria (backward)', short: 'achorayim', line: 'Mispar HaAchor Tosefet תוספת', map: hebrew.HEBREW_VALUES,
                    term: 'תוספת', termName: 'Tosefet · addition (backward)',
                    source: { quote: 'י׳ י״ה יה״ו יהו״ה', cite: 'האר״י, עץ חיים, שער ל״ד פ״ב' },
                    transform: core.cumulative, building: true, groups: runningPrefixes },
-      mikum:     { label: 'גימטריה מיקום · מגרעת / Positional Gematria (forward)', short: 'position', line: 'Mispar Mikum · Migra\'at מגרעת', map: hebrew.HEBREW_VALUES,
+      mikum:     { label: 'גימטריה מיקום · מגרעת / Positional Gematria (forward)', short: 'position', line: 'Mispar Mikum Migra\'at מגרעת', map: hebrew.HEBREW_VALUES,
                    term: 'מגרעת', termName: 'Migra\'at · subtraction (forward)',
                    transform: core.positional,
                    groups: (letters) => letters.map((l, i) => l + '×' + (i + 1)) },
