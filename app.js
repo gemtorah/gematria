@@ -1248,12 +1248,48 @@
 
   let lastFacts = []; // what the insights card currently shows, for the PNG export
 
+  // the English half of a cipher's bilingual label (גימטריה סדרית / Ordinal
+  // Gematria → Ordinal Gematria), the name the insight blocks are keyed by
+  const cipherName = (spec) => spec.label.split(' / ').pop();
+
+  /* values view: the phrase total under the selected cipher, its per-word
+   * subtotals, and — for Hebrew — the total under every other cipher in the
+   * registry, so the insights card covers all the Hebrew ciphers at once.
+   * Ciphers landing on one total share a block and list their names in its
+   * label, the selected cipher's block always first; per-word subtotals are
+   * capped so a long verse cannot crowd the cipher blocks out. */
+  const MAX_WORD_FACTS = 8;
+  function cipherFacts(analysis, cipherKey) {
+    const specs = G.CIPHERS[analysis.script];
+    const total = { label: 'Total · ' + cipherName(specs[cipherKey]), value: analysis.total };
+    const facts = [total];
+    if (analysis.words.length > 1) {
+      for (const w of analysis.words.slice(0, MAX_WORD_FACTS)) {
+        facts.push({ label: w.raw, value: w.values.reduce((x, y) => x + y, 0) });
+      }
+    }
+    if (analysis.script !== 'he') return facts;
+    const byValue = new Map([[analysis.total, total]]);
+    for (const key of Object.keys(specs)) {
+      if (key === cipherKey) continue;
+      const value = analyse(state.text, { he: key }).total;
+      const name = cipherName(specs[key]);
+      const hit = byValue.get(value);
+      if (hit) hit.label += ' · ' + name;
+      else {
+        const fact = { label: name, value };
+        byValue.set(value, fact);
+        facts.push(fact);
+      }
+    }
+    return facts;
+  }
+
   function renderFacts(entries) {
     const box = $('facts');
     box.innerHTML = '';
     const list = (entries || [])
-      .filter((e) => Number.isInteger(e.value) && e.value > 0)
-      .slice(0, 9);
+      .filter((e) => Number.isInteger(e.value) && e.value > 0);
     lastFacts = list;
     $('facts-card').hidden = !list.length;
     for (const e of list) box.appendChild(factBlock(e.label, e.value));
@@ -1567,12 +1603,7 @@
         : renderGrid(analysis);
       title = spec.label;
       source = spec.source || null;
-      facts = [{ label: 'Total', value: analysis.total }];
-      if (analysis.words.length > 1) {
-        for (const w of analysis.words) {
-          facts.push({ label: w.raw, value: w.values.reduce((x, y) => x + y, 0) });
-        }
-      }
+      facts = cipherFacts(analysis, cipherKey);
     }
     if (!art) {
       stage.appendChild($('empty-state') || buildEmpty());
@@ -1815,6 +1846,12 @@
       lines.push(`Total: ${analysis.total}`,
         ...numberLines(analysis.total),
         `Digital root: ${G.digitalRoot(analysis.total)}`);
+      // every Hebrew cipher's total, matching the insights card
+      if (analysis.script === 'he') {
+        lines.push('', 'All Hebrew ciphers:', ...Object.entries(G.CIPHERS.he).map(([key, sp]) =>
+          `  ${cipherName(sp)}: ` +
+          (key === cipherKey ? analysis.total : analyse(state.text, { he: key }).total)));
+      }
       // Abulafia's triad: the other two ways beside the chosen one
       if (spec.term && analysis.script === 'he') {
         const triad = shemetOf(state.text);
