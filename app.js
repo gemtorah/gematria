@@ -1184,7 +1184,13 @@
   function factModel(label, value) {
     const a = G.analyzeNumber(value);
     const m = { label, value: value.toLocaleString(), prime: false, pairs: [], tags: [] };
-    if (!a) { m.kind = '—'; return m; }
+    // a half-integer total (שווי on an even-length word) has no prime
+    // structure of its own; the block names its doubled whole instead
+    if (!a) {
+      m.kind = Number.isInteger(value * 2) && value > 0
+        ? `half of ${(value * 2).toLocaleString()} — not a whole number` : '—';
+      return m;
+    }
     if (a.n === 1) m.kind = 'unity — the multiplicative identity';
     else if (a.isPrime) {
       m.prime = true;
@@ -1288,8 +1294,10 @@
   function renderFacts(entries) {
     const box = $('facts');
     box.innerHTML = '';
+    // every entry with a positive total keeps its block, half-integer
+    // totals included, so the card mirrors the cipher pills one-to-one
     const list = (entries || [])
-      .filter((e) => Number.isInteger(e.value) && e.value > 0);
+      .filter((e) => Number.isFinite(e.value) && e.value > 0);
     lastFacts = list;
     $('facts-card').hidden = !list.length;
     for (const e of list) box.appendChild(factBlock(e.label, e.value));
@@ -1570,28 +1578,37 @@
           art.appendChild(card);
         }
         title = 'Comparison · השוואה';
-        // one insight block per distinct total; a total reached by several
-        // phrase/cipher pairings lists them all in its label
-        const byValue = new Map();
+        // one insight entry per cipher pill, in pill order: a pairing whose
+        // phrases agree gets a single block (A = B — cipher), otherwise one
+        // block per phrase (A — cipher, B — cipher)
+        facts = [];
         for (const s of visibleCompareSections(compareSections().sections)) {
-          s.results.forEach((r, i) => {
-            const tag = `${String.fromCharCode(65 + i)} — ${r.cipherLabel.split(' / ').pop()}`;
-            const tags = byValue.get(r.total) || [];
-            if (!tags.includes(tag)) tags.push(tag);
-            byValue.set(r.total, tags);
-          });
+          const letters = s.results.map((_, i) => String.fromCharCode(65 + i));
+          const equal = s.results.length > 1 &&
+            s.results.every((r) => r.total === s.results[0].total);
+          if (equal) {
+            const names = [...new Set(s.results.map((r) => r.cipherLabel.split(' / ').pop()))];
+            facts.push({ label: `${letters.join(' = ')} — ${names.join(' vs ')}`, value: s.results[0].total });
+            continue;
+          }
+          s.results.forEach((r, i) => facts.push({
+            label: `${letters[i]} — ${r.cipherLabel.split(' / ').pop()}`, value: r.total,
+          }));
         }
-        facts = [...byValue].map(([value, tags]) => ({ label: tags.join(' · '), value }));
       }
     } else if (analysis.letters && state.view === 'milui') {
       const mil = renderMilui(analysis);
       art = mil.svg;
       title = (state.miluiDepth === 2 ? "מילוי דמילוי · Milui d'Milui" : 'מילוי · Milui') +
         ` — ${G.SCHEMES[state.scheme].name} ${G.SCHEMES[state.scheme].heb}`;
-      facts = [{
-        label: `${state.miluiDepth === 2 ? 'Milui² total' : 'Milui total'} · ${G.SCHEMES[state.scheme].name}`,
-        value: mil.total,
-      }];
+      // one insight entry per scheme pill, in pill order, the selected
+      // scheme's block carrying the total drawn on the stage
+      facts = Object.entries(G.SCHEMES).map(([key, spec]) => ({
+        label: `${state.miluiDepth === 2 ? 'Milui²' : 'Milui'} · ${spec.name} ${spec.heb}`,
+        value: key === state.scheme ? mil.total
+          : state.miluiDepth === 2 ? G.miluiDmiluiTotal(state.text, key)
+          : G.miluiTotal(state.text, key),
+      }));
     } else if (analysis.letters) {
       const cipherKey = state.cipher[analysis.script] || G.DEFAULT_CIPHER[analysis.script];
       const spec = G.CIPHERS[analysis.script][cipherKey];
@@ -1804,6 +1821,10 @@
       lines.push(`${deep ? "Milui d'milui" : 'Milui'} total: ${total}`,
         ...numberLines(total),
         `Digital root: ${G.digitalRoot(total)}`);
+      // every scheme's total, matching the scheme pills and the insights card
+      lines.push('', `All ${deep ? "milui d'milui" : 'milui'} schemes:`,
+        ...Object.entries(G.SCHEMES).map(([key, sp]) => `  ${sp.name} ${sp.heb}: ` +
+          (deep ? G.miluiDmiluiTotal(state.text, key) : G.miluiTotal(state.text, key))));
     } else {
       const cipherKey = state.cipher[analysis.script] || G.DEFAULT_CIPHER[analysis.script];
       const spec = G.CIPHERS[analysis.script][cipherKey];
