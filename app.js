@@ -2236,6 +2236,59 @@
     });
   });
 
+  // achor toggle: the selected word is written out as its running prefixes
+  // (יהוה → י יה יהו יהוה), the achorayim behind מספר האחור. Every word in
+  // the selection expands on its own, and a letter keeps its superscript
+  // run (ב¹⁰⁰⁰ stays one step). Selecting a run that is already written out
+  // collapses it back to its full word. With nothing selected the word
+  // around the caret is used.
+  const achorTokens = (word) => {
+    const out = [];
+    for (const g of G.graphemes(word)) {
+      if (g in G.SUPERSCRIPT_DIGITS && out.length) out[out.length - 1] += g;
+      else out.push(g);
+    }
+    return out;
+  };
+  const achorExpand = (word) =>
+    achorTokens(word).map((_, i, t) => t.slice(0, i + 1).join('')).join(' ');
+  // Merge every stretch of words where each is the previous one plus a
+  // letter (י יה יהו יהוה) into its last word; untouched words stay put.
+  const achorCollapse = (words) => {
+    const out = [];
+    for (const w of words) {
+      const prev = out[out.length - 1];
+      const t = achorTokens(w);
+      if (prev !== undefined && t.length > 1 && t.slice(0, -1).join('') === prev) out[out.length - 1] = w;
+      else out.push(w);
+    }
+    return out;
+  };
+  document.querySelectorAll('.insert-achor').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const ta = btn.closest('.phrase-box').querySelector('textarea');
+      ta.focus();
+      let start = ta.selectionStart ?? ta.value.length;
+      let end = ta.selectionEnd ?? start;
+      if (start === end) {
+        while (start > 0 && !/\s/.test(ta.value[start - 1])) start--;
+        while (end < ta.value.length && !/\s/.test(ta.value[end])) end++;
+      }
+      const sel = ta.value.slice(start, end);
+      start += sel.length - sel.trimStart().length;
+      end -= sel.length - sel.trimEnd().length;
+      const words = sel.trim().split(/\s+/).filter(Boolean);
+      if (!words.length) return;
+      const collapsed = achorCollapse(words);
+      const insert = collapsed.length < words.length ? collapsed.join(' ')
+        : words.map(achorExpand).join(' ');
+      ta.setRangeText(insert, start, end, 'select');
+      if (ta.id === 'phrase') state.text = ta.value;
+      else state.textB = ta.value;
+      render();
+    });
+  });
+
   $('chips').addEventListener('click', (e) => {
     const chip = e.target.closest('.chip');
     if (!chip) return;
