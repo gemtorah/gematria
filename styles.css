@@ -165,7 +165,8 @@ header { text-align: center; margin-bottom: 34px; }
 /* rabati (×1000) and achor (prefix-run) keys, in the row above the textarea */
 .phrase-keys { display: flex; gap: 6px; }
 .insert-rabati,
-.insert-achor {
+.insert-achor,
+.insert-ladder {
   font-family: var(--serif);
   font-size: 1.05rem;
   line-height: 1;
@@ -178,7 +179,8 @@ header { text-align: center; margin-bottom: 34px; }
   transition: all 0.2s;
 }
 .insert-rabati:hover,
-.insert-achor:hover {
+.insert-achor:hover,
+.insert-ladder:hover {
   border-color: rgba(217, 171, 74, 0.5);
   box-shadow: 0 0 0 4px rgba(217, 171, 74, 0.12);
   transform: translateY(-1px);

@@ -2264,30 +2264,63 @@
     }
     return out;
   };
-  document.querySelectorAll('.insert-achor').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const ta = btn.closest('.phrase-box').querySelector('textarea');
-      ta.focus();
-      let start = ta.selectionStart ?? ta.value.length;
-      let end = ta.selectionEnd ?? start;
-      if (start === end) {
-        while (start > 0 && !/\s/.test(ta.value[start - 1])) start--;
-        while (end < ta.value.length && !/\s/.test(ta.value[end])) end++;
+  // ladder toggle: the selected word is written out as its prefixes up and
+  // its suffixes down (יהוה → י יה יהו יהוה יהוה הוה וה ה), the run behind
+  // תוספת ומגרעת; the full word stands twice, closing the ascent and
+  // opening the descent. Collapsing finds the longest such run at each
+  // position and folds it back to its word.
+  const ladderExpand = (word) => {
+    const t = achorTokens(word);
+    const up = t.map((_, i) => t.slice(0, i + 1).join(''));
+    const down = t.map((_, i) => t.slice(i).join(''));
+    return up.concat(down).join(' ');
+  };
+  const ladderCollapse = (words) => {
+    const out = [];
+    for (let i = 0; i < words.length;) {
+      let run = 0;
+      for (let n = Math.floor((words.length - i) / 2); n >= 1 && !run; n--) {
+        const t = achorTokens(words[i + n - 1]);
+        if (t.length === n && t.every((_, k) =>
+          words[i + k] === t.slice(0, k + 1).join('') &&
+          words[i + n + k] === t.slice(k).join(''))) run = n;
       }
-      const sel = ta.value.slice(start, end);
-      start += sel.length - sel.trimStart().length;
-      end -= sel.length - sel.trimEnd().length;
-      const words = sel.trim().split(/\s+/).filter(Boolean);
-      if (!words.length) return;
-      const collapsed = achorCollapse(words);
-      const insert = collapsed.length < words.length ? collapsed.join(' ')
-        : words.map(achorExpand).join(' ');
-      ta.setRangeText(insert, start, end, 'select');
-      if (ta.id === 'phrase') state.text = ta.value;
-      else state.textB = ta.value;
-      render();
+      if (run) { out.push(words[i + run - 1]); i += 2 * run; }
+      else out.push(words[i++]);
+    }
+    return out;
+  };
+
+  // A word key rewrites the selected words (or the word around the caret)
+  // with `expand`, or folds an already written-out run back with `collapse`.
+  const bindWordKey = (selector, expand, collapse) => {
+    document.querySelectorAll(selector).forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const ta = btn.closest('.phrase-box').querySelector('textarea');
+        ta.focus();
+        let start = ta.selectionStart ?? ta.value.length;
+        let end = ta.selectionEnd ?? start;
+        if (start === end) {
+          while (start > 0 && !/\s/.test(ta.value[start - 1])) start--;
+          while (end < ta.value.length && !/\s/.test(ta.value[end])) end++;
+        }
+        const sel = ta.value.slice(start, end);
+        start += sel.length - sel.trimStart().length;
+        end -= sel.length - sel.trimEnd().length;
+        const words = sel.trim().split(/\s+/).filter(Boolean);
+        if (!words.length) return;
+        const collapsed = collapse(words);
+        const insert = collapsed.length < words.length ? collapsed.join(' ')
+          : words.map(expand).join(' ');
+        ta.setRangeText(insert, start, end, 'select');
+        if (ta.id === 'phrase') state.text = ta.value;
+        else state.textB = ta.value;
+        render();
+      });
     });
-  });
+  };
+  bindWordKey('.insert-achor', achorExpand, achorCollapse);
+  bindWordKey('.insert-ladder', ladderExpand, ladderCollapse);
 
   $('chips').addEventListener('click', (e) => {
     const chip = e.target.closest('.chip');
