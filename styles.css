@@ -73,6 +73,25 @@ header { text-align: center; margin-bottom: 34px; }
   margin-right: 0.35em;
 }
 .tagline { color: var(--muted); margin-top: 10px; font-size: 0.98rem; }
+.brand-link { color: inherit; text-decoration: none; }
+
+/* ---- site navigation between the studio and its pages ------------------- */
+.site-nav { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.site-nav a, .site-nav-here {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--gold-deep);
+  text-decoration: none;
+  background: rgba(20, 16, 42, 0.04);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 14px;
+  transition: all 0.2s;
+}
+.site-nav a:hover { border-color: rgba(217, 171, 74, 0.5); transform: translateY(-1px); }
+.site-nav-here { color: var(--muted); }
+.tri-controls { margin-top: 16px; }
+.tri-hint { color: var(--muted); font-size: 0.85rem; flex: 1 1 240px; }
 
 /* ---- cards --------------------------------------------------------------- */
 .card {

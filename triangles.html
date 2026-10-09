@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Gematria Studio — Triangles</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="aurora"></div>
+
+  <div class="wrap">
+    <header>
+      <h1 class="brand"><a class="brand-link" href="index.html"><span class="glyphs">אψ</span>Gematria Studio</a></h1>
+      <p class="tagline">Every word as a triangle of letters — row by row, the building and ladder ciphers become shapes.</p>
+      <nav class="site-nav"><a href="index.html">← Studio</a><span class="site-nav-here">△ Triangles · משולשים</span></nav>
+    </header>
+
+    <!-- input -->
+    <section class="card">
+      <div class="input-row">
+        <div class="phrase-box">
+          <div class="phrase-head">
+            <span class="control-label">Phrase</span>
+            <span id="script-badge" class="script-badge">—</span>
+          </div>
+          <textarea id="phrase" rows="2" autocomplete="off" spellcheck="false" dir="auto"
+                    placeholder="e.g. יהוה · Ἰησοῦς Χριστός · love and light">Ἰησοῦς Χριστός</textarea>
+        </div>
+      </div>
+      <div class="chips" id="chips">
+        <button class="chip" data-text="Ἰησοῦς Χριστός">Ἰησοῦς Χριστός</button>
+        <button class="chip" data-text="יהוה">יהוה</button>
+        <button class="chip" data-text="יהוה אלהים">יהוה אלהים</button>
+        <button class="chip" data-text="בראשית ברא אלהים">בראשית ברא אלהים</button>
+        <button class="chip" data-text="love and light">love and light</button>
+      </div>
+      <div class="controls tri-controls">
+        <div class="control-group">
+          <span class="control-label">Cipher</span>
+          <select id="cipher-select" aria-label="Cipher"></select>
+        </div>
+        <p class="tri-hint" id="shape-hint"></p>
+      </div>
+    </section>
+
+    <!-- stage -->
+    <section class="card stage-card">
+      <div class="stage-toolbar">
+        <span id="art-title">—</span>
+        <div class="toolbar-actions">
+          <button class="btn" id="dl-png">Download PNG</button>
+          <button class="btn" id="copy-line">Copy Line</button>
+        </div>
+      </div>
+      <div class="stage" id="stage"></div>
+    </section>
+
+    <footer>
+      <span class="g">א</span>
+      <span class="g">ת</span>
+    </footer>
+  </div>
+
+  <!-- domain modules, in dependency order; gematria.js assembles the facade -->
+  <script src="src/core.js"></script>
+  <script src="src/alphabet-hebrew.js"></script>
+  <script src="src/alphabet-greek.js"></script>
+  <script src="src/alphabet-english.js"></script>
+  <script src="src/ciphers.js"></script>
+  <script src="src/insights.js"></script>
+  <script src="src/milui-options.js"></script>
+  <script src="src/milui-schemes.js"></script>
+  <script src="src/milui-calc.js"></script>
+  <script src="gematria.js"></script>
+  <script src="triangles.js"></script>
+</body>
+</html>
