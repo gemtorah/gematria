@@ -156,7 +156,7 @@
       row.letters.forEach((letter, j) => {
         const x = rtl ? x0 + (n - 1 - j) * HS : x0 + j * HS;
         const cell = el('g', { class: 'cell' });
-        cell.style.setProperty('--d', `${delay.n}ms`); delay.n += 22;
+        cell.style.setProperty('--d', `${delay.n}ms`); delay.n += delay.step;
         cell.appendChild(el('circle', {
           cx: x, cy: y, r: R,
           fill: row.down ? ART.downFill : ART.fill,
@@ -206,7 +206,9 @@
     if (line.length) lines.push(line);
 
     const root = el('g');
-    const delay = { n: 0 };
+    // stagger the circles' entrance, but let a long phrase settle within
+    // about 1.4s rather than one circle at a time
+    const delay = { n: 0, step: Math.min(22, 1400 / sum(analysis.words.map((w) => w.circles))) };
     let y = 0, maxW = 0;
     const bottoms = [];   // [x, y] of each word's shape on the last line, for the connectors
     lines.forEach((ln, li) => {
