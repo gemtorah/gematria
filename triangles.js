@@ -5,9 +5,13 @@
  * pointing up (the first N letters in row N — T(n) circles in all), and
  * the ladder ciphers (סלם · תוספת ומגרעת) carry on down through the
  * suffixes, so the shape turns back into a diamond. Rows are the cipher's
- * own step labels, so whatever the registry says a cipher's run is, that
- * is what gets drawn; a row's value is the sum of its letters, and the
- * rows add up to the cipher's total. Hebrew rows fill right to left.
+ * own step labels, so whatever the registry says a run is, that is what
+ * gets drawn. The shape and the letter values are chosen apart: any
+ * per-letter table (regular, reduced, ordinal, atbash …) can fill the
+ * circles, so the ladder of בראשית under Reduced Gematria sums to 441 the
+ * same way the studio does when the run is written out with the סלם key.
+ * A row's value is the sum of its letters and the rows add up to the
+ * total. Hebrew rows fill right to left.
  * ========================================================================== */
 (function () {
   'use strict';
@@ -29,11 +33,22 @@
   };
   const SCRIPT_NAMES = { he: 'Hebrew עברית', el: 'Greek Ελληνικά', en: 'English' };
 
+  // the three runs, borrowed from the Hebrew building ciphers' own step
+  // functions (they slice letter arrays, so they serve every script)
+  const SHAPES = {
+    triangle: { label: '△ Triangle', heb: 'אחור', name: 'Mispar HaAchor אחור',
+                groups: G.CIPHERS.he.boneh.groups },
+    ladder:   { label: '◇ Ladder', heb: 'סלם', name: 'Sulam סלם',
+                groups: G.CIPHERS.he.tosefetMigraat.groups },
+    pyramid:  { label: '⬠ Out and back', heb: 'רצוא ושוב', name: 'Ratzo VaShov רצוא ושוב',
+                groups: G.CIPHERS.he.ratzoVashov.groups },
+  };
+
   const state = {
     text: $('phrase').value,
-    // one building cipher per script; the ladder for Hebrew, where the
-    // page's name comes from, and the plain building run elsewhere
-    cipher: { he: 'tosefetMigraat', el: 'building', en: 'buildingSumerian' },
+    shape: 'triangle',
+    // one letter-value table per script
+    values: { ...G.DEFAULT_CIPHER },
   };
 
   /* ---- svg helpers ------------------------------------------------------------ */
@@ -63,21 +78,33 @@
     }
     return out;
   };
-  const buildingCiphers = (script) =>
-    Object.entries(G.CIPHERS[script]).filter(([, spec]) => spec.building);
+  // letter tables: every cipher that values letters one by one (substitution
+  // ciphers included); runs, folds and transforms are shapes, not values
+  const valueCiphers = (script) =>
+    Object.entries(G.CIPHERS[script]).filter(([, s]) => !s.building && !s.fold && !s.transform);
   const sum = (xs) => xs.reduce((a, b) => a + b, 0);
+  const valuesSpec = (script) =>
+    G.CIPHERS[script][state.values[script]] || G.CIPHERS[script][G.DEFAULT_CIPHER[script]];
 
-  function analyse(text) {
+  // the registry cipher this shape + table pair already is, if any
+  // (ladder + regular values = תוספת ומגרעת), for the studio's own name
+  const registryName = (script, shape, spec) => {
+    const hit = Object.values(G.CIPHERS[script]).find((c) =>
+      c.building && c.groups === SHAPES[shape].groups && c.map === spec.map);
+    return hit ? (hit.line || hit.label) : `${SHAPES[shape].name} · ${spec.line || spec.label}`;
+  };
+
+  function analyse(text, override) {
     const script = G.detectScript(text) || 'en';
+    const shape = SHAPES[state.shape];
     const words = [];
     for (const raw of text.trim().split(/\s+/)) {
       if (!raw) continue;
       const ws = G.detectScript(raw) || script;
-      const key = state.cipher[ws] || buildingCiphers(ws)[0][0];
-      const spec = G.CIPHERS[ws][key];
+      const spec = (override && override[ws]) || valuesSpec(ws);
       const { kept } = G.getValues(raw, spec.map);
       if (!kept.length) continue;
-      const rows = spec.groups(kept.map((g) => G.stripMarks(g))).map((label) => ({
+      const rows = shape.groups(kept.map((g) => G.stripMarks(g))).map((label) => ({
         label, letters: tokens(label), value: sum(G.getValues(label, spec.map).values),
       }));
       // the run has turned back once a row is no wider than the one before it
@@ -87,12 +114,14 @@
         r.down = down;
       });
       words.push({
-        raw, script: ws, key, spec, rows,
+        raw, script: ws, spec, rows,
         total: sum(rows.map((r) => r.value)),
         circles: sum(rows.map((r) => r.letters.length)),
       });
     }
-    return { script, words, total: sum(words.map((w) => w.total)) };
+    const spec = words.length ? words[0].spec : valuesSpec(script);
+    return { script, words, total: sum(words.map((w) => w.total)),
+      name: registryName(script, state.shape, spec), spec };
   }
 
   const primeTag = (n) => {
@@ -223,8 +252,7 @@
 
     // caption, as the figure's own last line — the arithmetic first, then
     // the cipher's name, so a Hebrew name can't pull the punctuation around
-    const spec = analysis.words[0].spec;
-    const name = spec.line || spec.label;
+    const name = analysis.name;
     const caption = (multi ? analysis.words.map((w) => w.total).join(' + ') + ' = ' : '') +
       analysis.total + primeTag(analysis.total) + ` — ${name}`;
     const capY = multi ? sumY + bh + R * 1.3 : y + R * 0.4;
@@ -237,47 +265,56 @@
     svg.style.aspectRatio = `${w} / ${h}`;
     svg.appendChild(root);
     stage.appendChild(svg);
-    $('art-title').textContent = `${SCRIPT_NAMES[analysis.script] || ''} — ${spec.label}`;
+    $('art-title').textContent = `${SCRIPT_NAMES[analysis.script] || ''} — ${name}`;
     return analysis;
   }
 
   /* ---- controls -------------------------------------------------------------- */
   function syncControls(analysis) {
     const script = analysis.script;
-    const sel = $('cipher-select');
-    const key = state.cipher[script] || buildingCiphers(script)[0][0];
-    if (sel.dataset.script !== script) {
-      sel.innerHTML = '';
-      for (const [k, spec] of buildingCiphers(script)) {
-        const opt = document.createElement('option');
-        opt.value = k;
-        opt.textContent = spec.label;
-        sel.appendChild(opt);
-      }
-      sel.dataset.script = script;
-    }
-    sel.value = key;
+    $('shape-seg').querySelectorAll('button').forEach((b) =>
+      b.classList.toggle('active', b.dataset.shape === state.shape));
     const badge = $('script-badge');
     badge.textContent = SCRIPT_NAMES[script] || '—';
     badge.className = 'script-badge ' + script;
-    const spec = G.CIPHERS[script][key];
-    const n = 4;
-    const labels = spec.groups(['1', '2', '3', '4']);
+
+    // one pill per letter table, each showing the phrase's total under it
+    // with the current shape; a prime total gets the studio's red border
+    const box = $('values');
+    box.innerHTML = '';
+    const current = valuesSpec(script);
+    for (const [key, spec] of valueCiphers(script)) {
+      const total = analyse(state.text, { [script]: spec }).total;
+      const b = document.createElement('button');
+      b.className = 'scheme-pill' + (spec === current ? ' active' : '') +
+        (isPrime(total) ? ' prime' : '');
+      const [heb, en] = spec.label.includes(' / ') ? spec.label.split(' / ') : ['', spec.label];
+      b.innerHTML = `<span class="s-name">${en}</span>` +
+        (heb ? `<span class="s-heb">${heb}</span>` : '') +
+        `<span class="s-total">${total.toLocaleString()}</span>`;
+      b.addEventListener('click', () => { state.values[script] = key; render(); });
+      box.appendChild(b);
+    }
+
+    const labels = SHAPES[state.shape].groups(['1', '2', '3', '4']);
     const circles = sum(labels.map((l) => l.length));
-    $('shape-hint').textContent = labels.length > n
-      ? `Up and down: a ${n}-letter word makes ${labels.length} rows, ${circles} circles.`
-      : `Row N holds the first N letters: a ${n}-letter word makes ${n} rows, ${circles} circles — the triangular number T(${n}).`;
+    $('shape-hint').textContent = labels.length > 4
+      ? `${SHAPES[state.shape].heb}: a 4-letter word makes ${labels.length} rows, ${circles} circles.`
+      : `Row N holds the first N letters: a 4-letter word makes 4 rows, ${circles} circles — the triangular number T(4).`;
   }
+
+  $('shape-seg').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-shape]');
+    if (!b) return;
+    state.shape = b.dataset.shape;
+    render();
+  });
 
   let debounce = 0;
   $('phrase').addEventListener('input', (e) => {
     state.text = e.target.value;
     clearTimeout(debounce);
     debounce = setTimeout(render, 140);
-  });
-  $('cipher-select').addEventListener('change', (e) => {
-    state.cipher[e.target.dataset.script] = e.target.value;
-    render();
   });
   $('chips').addEventListener('click', (e) => {
     const chip = e.target.closest('.chip');
@@ -326,9 +363,8 @@
 
   // the studio's one-line form for building ciphers: word - run · run = total (cipher)
   function shortLine(analysis) {
-    const spec = analysis.words[0].spec;
     const runs = analysis.words.map((w) => w.rows.map((r) => r.label).join(' ')).join(' · ');
-    return `${state.text.trim()} - ${runs} = ${analysis.total}${primeTag(analysis.total)} (${spec.line || spec.label})`;
+    return `${state.text.trim()} - ${runs} = ${analysis.total}${primeTag(analysis.total)} (${analysis.name})`;
   }
   $('copy-line').addEventListener('click', async (e) => {
     const analysis = analyse(state.text);

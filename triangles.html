@@ -38,11 +38,20 @@
       </div>
       <div class="controls tri-controls">
         <div class="control-group">
-          <span class="control-label">Cipher</span>
-          <select id="cipher-select" aria-label="Cipher"></select>
+          <span class="control-label">Shape</span>
+          <div class="seg" id="shape-seg">
+            <button type="button" data-shape="triangle">△ Triangle <span class="heb">אחור</span></button>
+            <button type="button" data-shape="ladder">◇ Ladder <span class="heb">סלם</span></button>
+            <button type="button" data-shape="pyramid">⬠ Out and back <span class="heb">רצוא ושוב</span></button>
+          </div>
         </div>
         <p class="tri-hint" id="shape-hint"></p>
       </div>
+      <div class="control-group tri-values-head">
+        <span class="control-label">Values</span>
+        <span class="tri-hint">the letter table that fills the circles — every table's total for this shape</span>
+      </div>
+      <div class="schemes visible" id="values"></div>
     </section>
 
     <!-- stage -->

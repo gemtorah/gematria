@@ -92,6 +92,8 @@ header { text-align: center; margin-bottom: 34px; }
 .site-nav-here { color: var(--muted); }
 .tri-controls { margin-top: 16px; }
 .tri-hint { color: var(--muted); font-size: 0.85rem; flex: 1 1 240px; }
+.tri-values-head { margin-top: 18px; }
+.seg button .heb { font-family: var(--serif); font-weight: 500; opacity: 0.8; margin-left: 4px; }
 
 /* ---- cards --------------------------------------------------------------- */
 .card {
