@@ -91,7 +91,10 @@ header { text-align: center; margin-bottom: 34px; }
 .site-nav a:hover { border-color: rgba(217, 171, 74, 0.5); transform: translateY(-1px); }
 .site-nav-here { color: var(--muted); }
 .tri-controls { margin-top: 16px; }
-.tri-hint { color: var(--muted); font-size: 0.85rem; flex: 1 1 240px; }
+.tri-hint { color: var(--muted); font-size: 0.85rem; flex: 1 1 auto; min-width: 0; }
+/* value pills carry long cipher names: let the name wrap so two fit a phone row */
+#values .scheme-pill { flex: 1 1 140px; max-width: 100%; }
+#values .s-name { white-space: normal; text-align: center; line-height: 1.2; }
 .tri-values-head { margin-top: 18px; }
 .seg button .heb { font-family: var(--serif); font-weight: 500; opacity: 0.8; margin-left: 4px; }
 
@@ -744,6 +747,7 @@ footer {
 footer .g { font-family: var(--serif); color: var(--gold-deep); }
 
 @media (max-width: 640px) {
+  #values .scheme-pill { max-width: calc(50% - 4px); }
   .controls { flex-direction: column; align-items: stretch; }
   /* label on its own line, control fills the card width — nothing can
      spill past the card edge */
