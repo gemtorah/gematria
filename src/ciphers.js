@@ -28,7 +28,9 @@
  * letter/value group (י · יה · יהו · יהוה); an optional `steps` gives a
  * building cipher its own run of [from, to) letter slices (the
  * out-and-back run of רצוא ושוב, the up-then-down ladder of תוספת
- * ומגרעת) in place of the plain prefix run.
+ * ומגרעת) in place of the plain prefix run. `compact: true` has the
+ * one-line copy write a word's labels as one run (י²ה²ו²ה² = 186) rather
+ * than letter by letter with values.
  * ========================================================================== */
 (function (root, factory) {
   if (typeof module !== 'undefined' && module.exports) {
@@ -172,7 +174,7 @@
       // each letter's ordinal value (א=1 … ת=22) squared on its own, the squares
       // summed: יהוה = 10² + 5² + 6² + 5² = 186, שלום = 21² + 12² + 6² + 13² = 790
       pratiSiduri: { label: 'מספר פרטי סדרי / Ordinal Square Gematria', short: 'ordinal squared', line: 'Mispar Prati Siduri', heb: 'פרטי סדרי', map: hebrew.HEBREW_ORDINALS,
-                   transform: core.squared, groups: (letters) => letters.map((l) => l + '²') },
+                   transform: core.squared, groups: (letters) => letters.map((l) => l + '²'), compact: true },
     },
     el: {
       isopsephy: { label: 'Greek Isopsephy',  short: 'isopsephy', line: 'Gr. Isop.', map: greek.GREEK_VALUES },
@@ -238,6 +240,8 @@
           'cipher ' + script + '.' + key + ' fold not a function');
         assert(!spec.building || (spec.transform && spec.groups),
           'cipher ' + script + '.' + key + ' building needs transform+groups');
+        assert(!spec.compact || spec.groups,
+          'cipher ' + script + '.' + key + ' compact needs groups');
         assert(!spec.steps || (spec.building && typeof spec.steps === 'function'),
           'cipher ' + script + '.' + key + ' steps needs building, as a function');
       }

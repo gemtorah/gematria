@@ -1973,6 +1973,8 @@
       const sum = word.values.reduce((a, b) => a + b, 0);
       // building ciphers: the prefix steps are the derivation (י יה יהו יהוה)
       if (word.building) return `${word.groups.join(' ')} = ${sum}`;
+      // compact ciphers: the labels run together as one term (י²ה²ו²ה²)
+      if (spec.compact) return `${word.groups.join('')} = ${sum}`;
       // word-reduced: letters with pre-fold values, then the root contraction
       if (word.folded) {
         const pre = word.folded.values.reduce((a, b) => a + b, 0);
