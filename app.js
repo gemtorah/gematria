@@ -1312,9 +1312,6 @@
   /* ---- atbash mapping: how each letter was transformed ------------------------ */
   /* Hebrew or English: the mirror letters come from the cipher's own
    * substitution labels (word.subs), so בבל reads ששך and Genesis Tvmvhrh. */
-  const BASE_TO_FINAL = Object.fromEntries(
-    Object.entries(G.FINAL_TO_BASE).map(([fin, base]) => [base, fin]));
-
   function renderAtbash(analysis) {
     const card = $('atbash-card'), box = $('atbash');
     const script = analysis.script;
@@ -2246,12 +2243,12 @@
     });
   });
 
-  // achor toggle: the selected word is written out as its running prefixes
+  // achor key: the selected word is written out as its running prefixes
   // (יהוה → י יה יהו יהוה), the achorayim behind מספר האחור. Every word in
   // the selection expands on its own, and a letter keeps its superscript
-  // run (ב¹⁰⁰⁰ stays one step). Selecting a run that is already written out
-  // collapses it back to its full word. With nothing selected the word
-  // around the caret is used.
+  // run (ב¹⁰⁰⁰ stays one step). Pressing again expands each written-out
+  // word once more (י יה → י י יה). With nothing selected the word around
+  // the caret is used.
   const achorTokens = (word) => {
     const out = [];
     for (const g of G.graphemes(word)) {
@@ -2262,48 +2259,20 @@
   };
   const achorExpand = (word) =>
     achorTokens(word).map((_, i, t) => t.slice(0, i + 1).join('')).join(' ');
-  // Merge every stretch of words where each is the previous one plus a
-  // letter (י יה יהו יהוה) into its last word; untouched words stay put.
-  const achorCollapse = (words) => {
-    const out = [];
-    for (const w of words) {
-      const prev = out[out.length - 1];
-      const t = achorTokens(w);
-      if (prev !== undefined && t.length > 1 && t.slice(0, -1).join('') === prev) out[out.length - 1] = w;
-      else out.push(w);
-    }
-    return out;
-  };
-  // ratzo vashov toggle: the selected word runs out by its prefixes and back
+  // ratzo vashov key: the selected word runs out by its prefixes and back
   // by its suffixes, the full word written once at the turn
-  // (יהוה → י יה יהו יהוה הוה וה ה), the run behind רצוא ושוב. Collapsing
-  // finds the longest such run (2n−1 words) at each position and folds it
-  // back to its word.
+  // (יהוה → י יה יהו יהוה הוה וה ה), the run behind רצוא ושוב.
   const ratzoExpand = (word) => {
     const t = achorTokens(word);
     const up = t.map((_, i) => t.slice(0, i + 1).join(''));
     const down = t.slice(1).map((_, i) => t.slice(i + 1).join(''));
     return up.concat(down).join(' ');
   };
-  const ratzoCollapse = (words) => {
-    const out = [];
-    for (let i = 0; i < words.length;) {
-      let run = 0;
-      for (let n = Math.floor((words.length - i + 1) / 2); n >= 2 && !run; n--) {
-        const t = achorTokens(words[i + n - 1]);
-        if (t.length === n && t.every((_, k) =>
-          words[i + k] === t.slice(0, k + 1).join('') &&
-          (k === 0 || words[i + n + k - 1] === t.slice(k).join('')))) run = n;
-      }
-      if (run) { out.push(words[i + run - 1]); i += 2 * run - 1; }
-      else out.push(words[i++]);
-    }
-    return out;
-  };
 
   // A word key rewrites the selected words (or the word around the caret)
-  // with `expand`, or folds an already written-out run back with `collapse`.
-  const bindWordKey = (selector, expand, collapse) => {
+  // with `expand`. The result stays selected, so pressing the key again
+  // applies the same expansion to every word it just wrote.
+  const bindWordKey = (selector, expand) => {
     document.querySelectorAll(selector).forEach((btn) => {
       btn.addEventListener('click', () => {
         const ta = btn.closest('.phrase-box').querySelector('textarea');
@@ -2319,36 +2288,21 @@
         end -= sel.length - sel.trimEnd().length;
         const words = sel.trim().split(/\s+/).filter(Boolean);
         if (!words.length) return;
-        const collapsed = collapse(words);
-        const insert = collapsed.length < words.length ? collapsed.join(' ')
-          : words.map(expand).join(' ');
-        ta.setRangeText(insert, start, end, 'select');
+        ta.setRangeText(words.map(expand).join(' '), start, end, 'select');
         if (ta.id === 'phrase') state.text = ta.value;
         else state.textB = ta.value;
         render();
       });
     });
   };
-  // milui toggle: every letter of the selected word is written as its name
-  // under the chosen milui scheme (הודו → הא ויו דלת ויו); a selection that
-  // is already a run of letter names folds back to their initials, the
-  // last one in its final form (שין למד וו מם → שלום).
+  // milui key: every letter of the selected word is written as its name
+  // under the chosen milui scheme (הודו → הא ויו דלת ויו); pressing it again
+  // on the names spells each of their letters in turn — milui d'milui.
   const miluiExpand = (word) =>
     achorTokens(word).map((t) => G.chooseSpelling(t, state.scheme) || t).join(' ');
-  const miluiCollapse = (words) => {
-    const initials = words.map((w) => {
-      const bare = G.stripMarks(w);
-      const first = Array.from(bare)[0];
-      return first && G.chooseSpelling(first, state.scheme) === bare ? first : null;
-    });
-    if (!initials.length || initials.some((i) => !i)) return words;
-    const last = initials.length - 1;
-    initials[last] = BASE_TO_FINAL[initials[last]] || initials[last];
-    return [initials.join('')];
-  };
-  bindWordKey('.insert-achor', achorExpand, achorCollapse);
-  bindWordKey('.insert-ratzo', ratzoExpand, ratzoCollapse);
-  bindWordKey('.insert-milui', miluiExpand, miluiCollapse);
+  bindWordKey('.insert-achor', achorExpand);
+  bindWordKey('.insert-ratzo', ratzoExpand);
+  bindWordKey('.insert-milui', miluiExpand);
 
   $('chips').addEventListener('click', (e) => {
     const chip = e.target.closest('.chip');
