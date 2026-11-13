@@ -1909,15 +1909,15 @@
    * אתב״ש); Greek and English keep the full name. The compare view gives
    * one such line per cipher section, one under the other
    * a prime total is tagged with its index: ג = ג|3| = 3 [2nd prime] (…)
-   * A second row counts what the line adds up — Letters: 4 · Words: 1 —
-   * so a word written out with the אחור / סלם / מילוי keys shows how far
-   * it has grown. The compare view counts each phrase on its own row. */
+   * A second row counts the letters the line adds up — Letters: 4 — so a
+   * word written out with the אחור / סלם / מילוי keys shows how far it has
+   * grown. The compare view counts each phrase on its own row. */
   const primeTag = (n) => {
     const a = G.analyzeNumber(n);
     if (!a || !a.isPrime) return '';
     return a.primeIndex ? ` [${G.ordinal(a.primeIndex)} prime]` : ' [prime]';
   };
-  const countRow = (letters, words) => `Letters: ${letters} · Words: ${words}`;
+  const countRow = (letters) => `Letters: ${letters}`;
   function buildShortLine(analysis) {
     if (state.view === 'compare') {
       const both = compareSections();
@@ -1930,7 +1930,7 @@
         return `${body}${eq} (${s.line})`;
       });
       for (const e of both.entries) {
-        lines.push(`${e.text.trim()} — ${countRow(e.base.letters, e.base.words.length)}`);
+        lines.push(`${e.text.trim()} — ${countRow(e.base.letters)}`);
       }
       return lines.join('\n');
     }
@@ -1961,7 +1961,7 @@
         (deep ? ` - ${words2.join(' ')}` : '') + ` = ${total}${primeTag(total)}` +
         ` (${deep ? "Milui d'Milui" : 'Milui'}` +
         ` ${scheme.name} ${scheme.heb}) - ${state.text.trim()}` +
-        `\n${countRow(letters, shown.length)}`;
+        `\n${countRow(letters)}`;
     }
     const cipherKey = state.cipher[analysis.script] || G.DEFAULT_CIPHER[analysis.script];
     const spec = G.CIPHERS[analysis.script][cipherKey];
@@ -1994,7 +1994,7 @@
     };
     // building ciphers transform the word into its prefix run, so the word
     // connects to its derivation with a dash rather than an equals sign
-    const counts = `\n${countRow(analysis.letters, analysis.words.length)}`;
+    const counts = `\n${countRow(analysis.letters)}`;
     if (analysis.words.length === 1) {
       const word = analysis.words[0];
       return `${word.raw} ` + (word.subs ? `← ${word.subs.join('')} ` : '') +
