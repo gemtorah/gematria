@@ -2298,6 +2298,16 @@
     const down = t.slice(1).map((_, i) => t.slice(i + 1).join(''));
     return up.concat(down).join(' ');
   };
+  // sulam key: the ladder of תוספת ומגרעת — up by the prefixes, then down
+  // by the suffixes with the full word written in both runs
+  // (יהוה → י יה יהו יהוה יהוה הוה וה ה), one word longer than ratzo
+  // vashov; the same run the Triangles page draws as the ◇ Ladder.
+  const sulamExpand = (word) => {
+    const t = achorTokens(word);
+    const up = t.map((_, i) => t.slice(0, i + 1).join(''));
+    const down = t.map((_, i) => t.slice(i).join(''));
+    return up.concat(down).join(' ');
+  };
 
   // A word key rewrites the selected words (or the word around the caret)
   // with `expand`. The result stays selected, so pressing the key again
@@ -2331,6 +2341,7 @@
     achorTokens(word).map((t) => G.chooseSpelling(t, state.scheme) || t).join(' ');
   bindWordKey('.insert-achor', achorExpand);
   bindWordKey('.insert-ratzo', ratzoExpand);
+  bindWordKey('.insert-sulam', sulamExpand);
   bindWordKey('.insert-milui', miluiExpand);
 
   $('chips').addEventListener('click', (e) => {

@@ -186,13 +186,14 @@ header { text-align: center; margin-bottom: 34px; }
 .script-badge.el { color: var(--indigo); border-color: rgba(79, 94, 217, 0.5); }
 .script-badge.en { color: var(--teal); border-color: rgba(13, 148, 136, 0.5); }
 
-/* rabati (×1000) and word-run keys (achor, ratzo vashov, milui), in the
+/* rabati (×1000) and word-run keys (achor, ratzo vashov, sulam, milui), in the
    row above the textarea; the keys wrap under the badge on a phone rather
    than squeezing a label onto two lines */
 .phrase-keys { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .insert-rabati,
 .insert-achor,
 .insert-ratzo,
+.insert-sulam,
 .insert-milui,
 .insert-undo {
   white-space: nowrap;
@@ -210,6 +211,7 @@ header { text-align: center; margin-bottom: 34px; }
 .insert-rabati:hover,
 .insert-achor:hover,
 .insert-ratzo:hover,
+.insert-sulam:hover,
 .insert-milui:hover,
 .insert-undo:hover:not(:disabled) {
   border-color: rgba(217, 171, 74, 0.5);
