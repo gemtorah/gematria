@@ -2291,8 +2291,8 @@
   // (יהוה → י יה יהו יהוה), the achorayim behind מספר האחור. Every word in
   // the selection expands on its own, and a letter keeps its superscript
   // run (ב¹⁰⁰⁰ stays one step). Pressing again expands each written-out
-  // word once more (י יה → י י יה). With nothing selected the word around
-  // the caret is used.
+  // word once more (י יה → י י יה). With nothing selected the whole text
+  // is taken, so the keys work on the box as it stands.
   const achorTokens = (word) => {
     const out = [];
     for (const g of G.graphemes(word)) {
@@ -2323,20 +2323,18 @@
     return up.concat(down).join(' ');
   };
 
-  // A word key rewrites the selected words (or the word around the caret)
-  // with `expand`. The result stays selected, so pressing the key again
+  // A word key rewrites the selected words (or the whole text when nothing
+  // is selected) with `expand`. The result stays selected, so pressing the key again
   // applies the same expansion to every word it just wrote.
   const bindWordKey = (selector, expand) => {
     document.querySelectorAll(selector).forEach((btn) => {
       btn.addEventListener('click', () => {
         const ta = btn.closest('.phrase-box').querySelector('textarea');
         ta.focus();
-        let start = ta.selectionStart ?? ta.value.length;
+        // nothing selected: the whole text is the selection
+        let start = ta.selectionStart ?? 0;
         let end = ta.selectionEnd ?? start;
-        if (start === end) {
-          while (start > 0 && !/\s/.test(ta.value[start - 1])) start--;
-          while (end < ta.value.length && !/\s/.test(ta.value[end])) end++;
-        }
+        if (start === end) { start = 0; end = ta.value.length; }
         const sel = ta.value.slice(start, end);
         start += sel.length - sel.trimStart().length;
         end -= sel.length - sel.trimEnd().length;
