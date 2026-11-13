@@ -1911,7 +1911,7 @@
    * a prime total is tagged with its index: ג = ג|3| = 3 [2nd prime] (…)
    * A second row counts the letters the line adds up — Letters: 4 — so a
    * word written out with the אחור / סלם / מילוי keys shows how far it has
-   * grown. The compare view counts each phrase on its own row. */
+   * grown. The compare view puts both phrases' counts on one row. */
   const primeTag = (n) => {
     const a = G.analyzeNumber(n);
     if (!a || !a.isPrime) return '';
@@ -1929,9 +1929,9 @@
           s.results.every((r) => r.total === s.results[0].total) ? ' - equal' : '';
         return `${body}${eq} (${s.line})`;
       });
-      for (const e of both.entries) {
-        lines.push(`${e.text.trim()} — ${countRow(e.base.letters)}`);
-      }
+      // one count row: a single phrase's letters, or both phrases' counts
+      // side by side in the order the cipher lines list them (33 vs 4)
+      lines.push(countRow(both.entries.map((e) => e.base.letters).join(' vs ')));
       return lines.join('\n');
     }
     if (state.view === 'milui') {
