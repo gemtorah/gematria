@@ -416,9 +416,13 @@
   });
 
   // the studio's one-line form for building ciphers: word - run · run = total (cipher)
+  // with a second row counting the letters the run writes out (one per
+  // circle), the way the studio's copy line does
   function shortLine(analysis) {
     const runs = analysis.words.map((w) => w.rows.map((r) => r.label).join(' ')).join(' · ');
-    return `${state.text.trim()} - ${runs} = ${analysis.total}${primeTag(analysis.total)} (${analysis.name})`;
+    const letters = sum(analysis.words.map((w) => w.circles));
+    return `${state.text.trim()} - ${runs} = ${analysis.total}${primeTag(analysis.total)} (${analysis.name})` +
+      `\nLetters: ${letters}`;
   }
   $('copy-line').addEventListener('click', async (e) => {
     const analysis = analyse(state.text);
