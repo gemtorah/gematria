@@ -2218,6 +2218,37 @@
     debounce = setTimeout(render, 140);
   });
 
+  // Every key press on a phrase box (rabati, the word keys, a sample chip)
+  // first remembers the text and selection it is about to rewrite, so the
+  // box's undo key can step back through them. Typing by hand does not
+  // add to the stack; it just stays undoable to the state before the last
+  // key press.
+  const undoStack = { phrase: [], 'phrase-b': [] };
+  const undoKey = (ta) => ta.closest('.phrase-box').querySelector('.insert-undo');
+  const remember = (ta) => {
+    const stack = undoStack[ta.id];
+    stack.push({ value: ta.value, start: ta.selectionStart, end: ta.selectionEnd });
+    if (stack.length > 50) stack.shift();
+    undoKey(ta).disabled = false;
+  };
+  const commit = (ta) => {
+    if (ta.id === 'phrase') state.text = ta.value;
+    else state.textB = ta.value;
+    render();
+  };
+  document.querySelectorAll('.insert-undo').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const ta = btn.closest('.phrase-box').querySelector('textarea');
+      const snap = undoStack[ta.id].pop();
+      if (!snap) return;
+      ta.focus();
+      ta.value = snap.value;
+      ta.setSelectionRange(snap.start, snap.end);
+      btn.disabled = !undoStack[ta.id].length;
+      commit(ta);
+    });
+  });
+
   // rabati toggle: the selected letter becomes letter × 1000 (ב → ב¹⁰⁰⁰
   // = 2000); selecting a letter that already carries the mark returns it
   // to the original letter. With nothing selected the mark is added or
@@ -2236,10 +2267,9 @@
       const sel = ta.value.slice(start, end);
       const insert = SUP_RE.test(sel) ? G.stripSuperscripts(sel)
         : sel + G.RABATI_MARK;
+      remember(ta);
       ta.setRangeText(insert, start, end, 'end');
-      if (ta.id === 'phrase') state.text = ta.value;
-      else state.textB = ta.value;
-      render();
+      commit(ta);
     });
   });
 
@@ -2288,10 +2318,9 @@
         end -= sel.length - sel.trimEnd().length;
         const words = sel.trim().split(/\s+/).filter(Boolean);
         if (!words.length) return;
+        remember(ta);
         ta.setRangeText(words.map(expand).join(' '), start, end, 'select');
-        if (ta.id === 'phrase') state.text = ta.value;
-        else state.textB = ta.value;
-        render();
+        commit(ta);
       });
     });
   };
@@ -2307,9 +2336,9 @@
   $('chips').addEventListener('click', (e) => {
     const chip = e.target.closest('.chip');
     if (!chip) return;
+    remember($('phrase'));
     $('phrase').value = chip.dataset.text;
-    state.text = chip.dataset.text;
-    render();
+    commit($('phrase'));
   });
 
   $('view-seg').addEventListener('click', (e) => {

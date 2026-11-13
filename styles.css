@@ -193,7 +193,8 @@ header { text-align: center; margin-bottom: 34px; }
 .insert-rabati,
 .insert-achor,
 .insert-ratzo,
-.insert-milui {
+.insert-milui,
+.insert-undo {
   white-space: nowrap;
   font-family: var(--serif);
   font-size: 1.05rem;
@@ -209,11 +210,15 @@ header { text-align: center; margin-bottom: 34px; }
 .insert-rabati:hover,
 .insert-achor:hover,
 .insert-ratzo:hover,
-.insert-milui:hover {
+.insert-milui:hover,
+.insert-undo:hover:not(:disabled) {
   border-color: rgba(217, 171, 74, 0.5);
   box-shadow: 0 0 0 4px rgba(217, 171, 74, 0.12);
   transform: translateY(-1px);
 }
+/* the undo key sits greyed until a key press has given it something to undo */
+.insert-undo { color: var(--muted); }
+.insert-undo:disabled { opacity: 0.4; cursor: default; }
 
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 .chip {
