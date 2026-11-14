@@ -382,20 +382,29 @@
       });
     });
   };
-  // רצוא ושוב key: each word is written out by its prefixes and back by its
-  // suffixes, the full word once at the turn (יהוה → י יה יהו יהוה הוה וה ה)
+  // the three runs as text, the same slices the shapes draw: אחור writes
+  // each word's prefixes (יהוה → י יה יהו יהוה); רצוא ושוב runs out by the
+  // prefixes and back by the suffixes with the full word once at the turn
+  // (… יהוה הוה וה ה); סלם is the ladder, the full word in both runs
+  const prefixes = (t) => t.map((_, i) => t.slice(0, i + 1).join(''));
+  const suffixes = (t) => t.map((_, i) => t.slice(i).join(''));
+  const achorExpand = (word) => prefixes(tokens(word)).join(' ');
   const ratzoExpand = (word) => {
     const t = tokens(word);
-    const up = t.map((_, i) => t.slice(0, i + 1).join(''));
-    const down = t.slice(1).map((_, i) => t.slice(i + 1).join(''));
-    return up.concat(down).join(' ');
+    return prefixes(t).concat(suffixes(t).slice(1)).join(' ');
+  };
+  const sulamExpand = (word) => {
+    const t = tokens(word);
+    return prefixes(t).concat(suffixes(t)).join(' ');
   };
   // מילוי key: every letter is written as its name under the chosen scheme
   // (הודו → הא ויו דלת ויו), so each name becomes its own shape; pressing
   // again spells the names themselves — milui d'milui
   const miluiExpand = (word) =>
     tokens(word).map((t) => G.chooseSpelling(t, state.scheme) || t).join(' ');
+  bindWordKey('.insert-achor', achorExpand);
   bindWordKey('.insert-ratzo', ratzoExpand);
+  bindWordKey('.insert-sulam', sulamExpand);
   bindWordKey('.insert-milui', miluiExpand);
 
   // the scheme picker beside the מילוי key
