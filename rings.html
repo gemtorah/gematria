@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Gematria Studio — Rings</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="aurora"></div>
+
+  <div class="wrap">
+    <header>
+      <h1 class="brand"><a class="brand-link" href="index.html"><span class="glyphs">אψ</span>Gematria Studio</a></h1>
+      <p class="tagline">Every word as rings of letters — each letter opens into its name, ring by ring, the milui becomes a wheel.</p>
+      <nav class="site-nav"><a href="index.html">← Studio</a><a href="triangles.html">△ Triangles · משולשים</a><span class="site-nav-here">◎ Rings · מילוי</span></nav>
+    </header>
+
+    <!-- input -->
+    <section class="card">
+      <div class="input-row">
+        <div class="phrase-box">
+          <div class="phrase-head">
+            <div class="phrase-keys">
+              <span class="control-label">Phrase</span>
+            </div>
+            <span id="script-badge" class="script-badge he">Hebrew עברית</span>
+          </div>
+          <textarea id="phrase" rows="2" autocomplete="off" spellcheck="false" dir="rtl"
+                    placeholder="e.g. יהוה · אלהים · שלום">יהוה</textarea>
+        </div>
+      </div>
+      <div class="chips" id="chips">
+        <button class="chip" data-text="יהוה">יהוה</button>
+        <button class="chip" data-text="אהיה">אהיה</button>
+        <button class="chip" data-text="אלהים">אלהים</button>
+        <button class="chip" data-text="שדי">שדי</button>
+        <button class="chip" data-text="אדם">אדם</button>
+        <button class="chip" data-text="מוח לב כבד">מוח לב כבד</button>
+      </div>
+      <div class="controls tri-controls">
+        <div class="control-group">
+          <span class="control-label">Depth</span>
+          <div class="seg" id="depth-seg">
+            <button type="button" data-depth="1">מילוי Milui</button>
+            <button type="button" data-depth="2">מילוי דמילוי Milui²</button>
+          </div>
+        </div>
+        <p class="tri-hint">The word sits in the inner ring; every letter opens outward into its name. Gold is the revealed letter carried through each filling, indigo the hidden letters it adds.</p>
+      </div>
+      <div class="control-group tri-values-head">
+        <span class="control-label">Scheme</span>
+        <span class="tri-hint">how each letter is spelled — every scheme's total at this depth</span>
+      </div>
+      <div class="schemes visible" id="schemes"></div>
+      <div class="control-group tri-values-head">
+        <span class="control-label">Values</span>
+        <span class="tri-hint">the letter table that values the rings — every table's total for this filling</span>
+      </div>
+      <div class="schemes visible" id="values"></div>
+    </section>
+
+    <!-- stage -->
+    <section class="card stage-card">
+      <div class="stage-toolbar">
+        <span id="art-title">—</span>
+        <div class="toolbar-actions">
+          <button class="btn" id="dl-png">Download PNG</button>
+          <button class="btn" id="copy-line">Copy Line</button>
+        </div>
+      </div>
+      <div class="stage" id="stage"></div>
+    </section>
+
+    <footer>
+      <span class="g">א</span>
+      <span class="g">ת</span>
+    </footer>
+  </div>
+
+  <!-- domain modules, in dependency order; gematria.js assembles the facade -->
+  <script src="src/core.js"></script>
+  <script src="src/alphabet-hebrew.js"></script>
+  <script src="src/alphabet-greek.js"></script>
+  <script src="src/alphabet-english.js"></script>
+  <script src="src/ciphers.js"></script>
+  <script src="src/insights.js"></script>
+  <script src="src/milui-options.js"></script>
+  <script src="src/milui-schemes.js"></script>
+  <script src="src/milui-calc.js"></script>
+  <script src="gematria.js"></script>
+  <script src="rings.js"></script>
+</body>
+</html>

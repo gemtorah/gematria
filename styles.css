@@ -90,6 +90,10 @@ header { text-align: center; margin-bottom: 34px; }
 }
 .site-nav a:hover { border-color: rgba(217, 171, 74, 0.5); transform: translateY(-1px); }
 .site-nav-here { color: var(--muted); }
+/* Rings page: each cell of a wheel fades in, staggered by --d */
+.ring-cell { animation: ring-in 0.45s ease-out backwards; animation-delay: var(--d, 0ms); }
+.ring-cell:hover path { filter: brightness(0.96); }
+@keyframes ring-in { from { opacity: 0; } to { opacity: 1; } }
 .tri-controls { margin-top: 16px; }
 .tri-hint { color: var(--muted); font-size: 0.85rem; flex: 1 1 auto; min-width: 0; }
 /* value pills carry long cipher names: let the name wrap so two fit a phone row */
