@@ -158,14 +158,20 @@
     const leaves = sum(word.letters.map((n) => n.leaves));
     const unit = (2 * Math.PI) / leaves;
 
-    const cell = (n, level, a0) => {
+    // where each letter's wedge begins (heavy spokes, hub to rim) and where
+    // each letter of a name begins its own filling (lighter spokes across
+    // the outer ring), so every expansion can be followed outward
+    const spokes = [], subSpokes = [];
+    const cell = (n, level, a0, family) => {
       const a1 = a0 + n.leaves * unit;
+      if (level === 0) spokes.push(a0);
+      else if (level === 1 && n.kids.length && !spokes.includes(a0)) subSpokes.push(a0);
       const r0 = (HUB + BAND * level) * k, r1 = (HUB + BAND * (level + 1)) * k;
       const c = el('g', { class: 'ring-cell' });
       c.style.setProperty('--d', `${delay.n}ms`); delay.n += delay.step;
       c.appendChild(el('path', {
         d: sector(r0, r1, a0, a1),
-        fill: ART.rings[level].fill,
+        fill: ART.rings[level].fill, 'fill-opacity': family % 2 ? 0.4 : 1,
         stroke: ART.rings[level].edge, 'stroke-width': 1.6, 'stroke-linejoin': 'round',
       }));
       const rm = (r0 + r1) / 2, am = (a0 + a1) / 2;
@@ -183,10 +189,18 @@
       c.appendChild(title);
       g.appendChild(c);
       let a = a0;
-      for (const kid of n.kids) { cell(kid, level + 1, a); a += kid.leaves * unit; }
+      for (const kid of n.kids) { cell(kid, level + 1, a, family); a += kid.leaves * unit; }
     };
     let a = 0;
-    for (const n of word.letters) { cell(n, 0, a); a += n.leaves * unit; }
+    word.letters.forEach((n, i) => { cell(n, 0, a, i); a += n.leaves * unit; });
+    const rim = (HUB + BAND * (state.depth + 1)) * k;
+    const spoke = (angle, r0, width, color) => {
+      const [x0, y0] = pt(r0, angle), [x1, y1] = pt(rim, angle);
+      g.appendChild(el('line', { x1: x0, y1: y0, x2: x1, y2: y1,
+        stroke: color, 'stroke-width': width, 'stroke-linecap': 'round' }));
+    };
+    for (const angle of subSpokes) spoke(angle, (HUB + BAND) * k, 3, ART.rings[1].edge);
+    if (word.letters.length > 1) for (const angle of spokes) spoke(angle, HUB * k, 4.5, ART.text);
 
     // hub: the word and its plain value
     const hubR = HUB * k - 4;
