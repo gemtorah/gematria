@@ -5,10 +5,11 @@
  * (י → יוד), and with milui d'milui each of those opens once more. A
  * letter's arc spans the arcs of its filling, so the nesting reads along
  * any radius: letter, name, name of the name.
- * The first letter of a name is the letter itself — the revealed part
- * (gold) — and the rest is the hidden filling it adds (indigo); the
- * revealed letters of every ring add up to the plain word, so each wheel
- * closes with revealed + hidden = total. Scheme and letter table are
+ * Each ring has its own colour: gold for the word, indigo for its milui,
+ * teal for the milui d'milui. The first letter of a name is the letter
+ * itself — the revealed part — and the rest is the hidden filling it
+ * adds; the revealed letters of every ring add up to the plain word, so
+ * each wheel closes with revealed + hidden = total. Scheme and letter table are
  * chosen apart: any per-letter table (regular, reduced, ordinal …) can
  * value the rings. Rings run clockwise from twelve o'clock.
  * ========================================================================== */
@@ -18,12 +19,17 @@
   const $ = (id) => document.getElementById(id);
   const SVG_NS = 'http://www.w3.org/2000/svg';
 
-  /* palette shared with the Triangles page: gold for what is revealed,
-   * the app's indigo for what the filling adds */
+  /* palette in the Triangles page's tones: gold for the word, the app's
+   * indigo for its milui, teal for the milui d'milui */
   const ART = {
     bg: '#ffffff',
-    fill: '#f7f1e3', edge: '#b08d3e', text: '#1d1f2b',
-    hidFill: '#eef0fb', hidEdge: '#4f5ed9',
+    text: '#1d1f2b', edge: '#b08d3e',
+    // one colour per ring: the word, its milui, its milui d'milui
+    rings: [
+      { fill: '#f7f1e3', edge: '#b08d3e' },
+      { fill: '#eef0fb', edge: '#4f5ed9' },
+      { fill: '#e4f5f1', edge: '#1f9e89' },
+    ],
     hub: '#fffaf0', muted: '#6a7086',
     sumFill: '#d9ab4a', sumEdge: '#efd08a', sumText: '#14101f', prime: '#d63b3b',
     serif: "'Frank Ruhl Libre','Cardo','Times New Roman',serif",
@@ -159,8 +165,8 @@
       c.style.setProperty('--d', `${delay.n}ms`); delay.n += delay.step;
       c.appendChild(el('path', {
         d: sector(r0, r1, a0, a1),
-        fill: n.revealed ? ART.fill : ART.hidFill,
-        stroke: n.revealed ? ART.edge : ART.hidEdge, 'stroke-width': 1.6, 'stroke-linejoin': 'round',
+        fill: ART.rings[level].fill,
+        stroke: ART.rings[level].edge, 'stroke-width': 1.6, 'stroke-linejoin': 'round',
       }));
       const rm = (r0 + r1) / 2, am = (a0 + a1) / 2;
       const arc = (a1 - a0) * rm, band = r1 - r0;
