@@ -25,7 +25,12 @@
             <div class="phrase-keys">
               <span class="control-label">Phrase</span>
               <button class="insert-ratzo" type="button"
-                      title="Write the selected word out and back — ratzo vashov (יהוה → י יה יהו יהוה הוה וה ה), the full word once at the turn; click again to collapse it back">רצוא ושוב</button>
+                      title="Write the text (or just the selected words) out and back — ratzo vashov (יהוה → י יה יהו יהוה הוה וה ה), the full word once at the turn; press again to run each step out and back">רצוא ושוב</button>
+              <button class="insert-milui" type="button"
+                      title="Write the text (or just the selected words) as its letter names under the chosen milui scheme (הודו → הא ויו דלת ויו); press again to spell the names themselves — milui d'milui">מילוי</button>
+              <select id="milui-scheme" class="milui-scheme" title="Milui scheme the מילוי key spells with"></select>
+              <button class="insert-undo" type="button" disabled
+                      title="Undo the last key press (רצוא ושוב, מילוי or a sample chip)">↶ ביטול</button>
             </div>
             <span id="script-badge" class="script-badge">—</span>
           </div>

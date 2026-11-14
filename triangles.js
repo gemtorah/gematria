@@ -49,7 +49,15 @@
     shape: 'triangle',
     // one letter-value table per script
     values: { ...G.DEFAULT_CIPHER },
+    // milui scheme the מילוי key spells with
+    scheme: 'standard',
   };
+
+  // the Custom scheme reads the table the studio saved, if any
+  try {
+    const saved = JSON.parse(localStorage.getItem('gematria-custom-milui') || 'null');
+    if (saved) G.setCustomMilui(saved);
+  } catch (e) { /* corrupt or invalid — keep shipped defaults */ }
 
   /* ---- svg helpers ------------------------------------------------------------ */
   function el(tag, attrs = {}, children = []) {
@@ -324,59 +332,82 @@
   $('chips').addEventListener('click', (e) => {
     const chip = e.target.closest('.chip');
     if (!chip) return;
+    remember($('phrase'));
     $('phrase').value = chip.dataset.text;
-    state.text = chip.dataset.text;
-    render();
+    commit($('phrase'));
   });
 
-  // רצוא ושוב key: the selected words (or the word around the caret) are
-  // written out by their prefixes and back by their suffixes, the full word
-  // once at the turn (יהוה → י יה יהו יהוה הוה וה ה); a selection that is
-  // already such a run folds back to its word, each word on its own.
+  // Every key press on the phrase box (the word keys, a sample chip) first
+  // remembers the text and selection it rewrites, so the undo key can step
+  // back through them. Typing by hand does not add to the stack.
+  const undoStack = [];
+  const remember = (ta) => {
+    undoStack.push({ value: ta.value, start: ta.selectionStart, end: ta.selectionEnd });
+    if (undoStack.length > 50) undoStack.shift();
+    $('phrase').closest('.phrase-box').querySelector('.insert-undo').disabled = false;
+  };
+  const commit = (ta) => { state.text = ta.value; render(); };
+  document.querySelectorAll('.insert-undo').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const ta = $('phrase');
+      const snap = undoStack.pop();
+      if (!snap) return;
+      ta.focus();
+      ta.value = snap.value;
+      ta.setSelectionRange(snap.start, snap.end);
+      btn.disabled = !undoStack.length;
+      commit(ta);
+    });
+  });
+
+  // A word key rewrites the selected words (or the whole text when nothing
+  // is selected) with `expand`. The result stays selected, so pressing the
+  // key again applies the same expansion to every word it just wrote.
+  const bindWordKey = (selector, expand) => {
+    document.querySelectorAll(selector).forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const ta = $('phrase');
+        ta.focus();
+        let start = ta.selectionStart ?? 0;
+        let end = ta.selectionEnd ?? start;
+        if (start === end) { start = 0; end = ta.value.length; }
+        const sel = ta.value.slice(start, end);
+        start += sel.length - sel.trimStart().length;
+        end -= sel.length - sel.trimEnd().length;
+        const words = sel.trim().split(/\s+/).filter(Boolean);
+        if (!words.length) return;
+        remember(ta);
+        ta.setRangeText(words.map(expand).join(' '), start, end, 'select');
+        commit(ta);
+      });
+    });
+  };
+  // רצוא ושוב key: each word is written out by its prefixes and back by its
+  // suffixes, the full word once at the turn (יהוה → י יה יהו יהוה הוה וה ה)
   const ratzoExpand = (word) => {
     const t = tokens(word);
     const up = t.map((_, i) => t.slice(0, i + 1).join(''));
     const down = t.slice(1).map((_, i) => t.slice(i + 1).join(''));
     return up.concat(down).join(' ');
   };
-  const ratzoCollapse = (words) => {
-    const out = [];
-    for (let i = 0; i < words.length;) {
-      let run = 0;
-      for (let n = Math.floor((words.length - i + 1) / 2); n >= 2 && !run; n--) {
-        const t = tokens(words[i + n - 1]);
-        if (t.length === n && t.every((_, k) =>
-          words[i + k] === t.slice(0, k + 1).join('') &&
-          (k === 0 || words[i + n + k - 1] === t.slice(k).join('')))) run = n;
-      }
-      if (run) { out.push(words[i + run - 1]); i += 2 * run - 1; }
-      else out.push(words[i++]);
-    }
-    return out;
-  };
-  document.querySelectorAll('.insert-ratzo').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const ta = $('phrase');
-      ta.focus();
-      let start = ta.selectionStart ?? ta.value.length;
-      let end = ta.selectionEnd ?? start;
-      if (start === end) {
-        while (start > 0 && !/\s/.test(ta.value[start - 1])) start--;
-        while (end < ta.value.length && !/\s/.test(ta.value[end])) end++;
-      }
-      const sel = ta.value.slice(start, end);
-      start += sel.length - sel.trimStart().length;
-      end -= sel.length - sel.trimEnd().length;
-      const words = sel.trim().split(/\s+/).filter(Boolean);
-      if (!words.length) return;
-      const collapsed = ratzoCollapse(words);
-      const insert = collapsed.length < words.length ? collapsed.join(' ')
-        : words.map(ratzoExpand).join(' ');
-      ta.setRangeText(insert, start, end, 'select');
-      state.text = ta.value;
-      render();
-    });
-  });
+  // מילוי key: every letter is written as its name under the chosen scheme
+  // (הודו → הא ויו דלת ויו), so each name becomes its own shape; pressing
+  // again spells the names themselves — milui d'milui
+  const miluiExpand = (word) =>
+    tokens(word).map((t) => G.chooseSpelling(t, state.scheme) || t).join(' ');
+  bindWordKey('.insert-ratzo', ratzoExpand);
+  bindWordKey('.insert-milui', miluiExpand);
+
+  // the scheme picker beside the מילוי key
+  const schemeSel = $('milui-scheme');
+  for (const [key, spec] of Object.entries(G.SCHEMES)) {
+    const o = document.createElement('option');
+    o.value = key;
+    o.textContent = `${spec.name} ${spec.heb}`;
+    schemeSel.appendChild(o);
+  }
+  schemeSel.value = state.scheme;
+  schemeSel.addEventListener('change', () => { state.scheme = schemeSel.value; });
 
   /* ---- export ---------------------------------------------------------------- */
   const safeName = () =>

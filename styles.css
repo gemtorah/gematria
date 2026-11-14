@@ -218,6 +218,19 @@ header { text-align: center; margin-bottom: 34px; }
   box-shadow: 0 0 0 4px rgba(217, 171, 74, 0.12);
   transform: translateY(-1px);
 }
+/* the Triangles page's milui scheme picker sits in the key row as a pill */
+.milui-scheme {
+  font-family: var(--serif);
+  font-size: 0.95rem;
+  color: var(--gold-deep);
+  background: rgba(20, 16, 42, 0.04);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+  max-width: 11em;
+}
+.milui-scheme:focus { outline: none; border-color: rgba(217, 171, 74, 0.55); }
 /* the undo key sits greyed until a key press has given it something to undo */
 .insert-undo { color: var(--muted); }
 .insert-undo:disabled { opacity: 0.4; cursor: default; }
