@@ -14,7 +14,7 @@
     <header>
       <h1 class="brand"><a class="brand-link" href="index.html"><span class="glyphs">אψ</span>Gematria Studio</a></h1>
       <p class="tagline">Every word as a triangle of letters — row by row, the building and ladder ciphers become shapes.</p>
-      <nav class="site-nav"><a href="index.html">← Studio</a><span class="site-nav-here">△ Triangles · משולשים</span></nav>
+      <nav class="site-nav"><a href="index.html">← Studio</a><span class="site-nav-here">△ Triangles · משולשים</span><a href="rings.html">◎ Rings · מילוי</a></nav>
     </header>
 
     <!-- input -->
@@ -24,8 +24,17 @@
           <div class="phrase-head">
             <div class="phrase-keys">
               <span class="control-label">Phrase</span>
+              <button class="insert-achor" type="button"
+                      title="Write the text (or just the selected words) as its prefixes — mispar haachor (יהוה → י יה יהו יהוה); press again to write out each step in turn">אחור</button>
               <button class="insert-ratzo" type="button"
-                      title="Write the selected word out and back — ratzo vashov (יהוה → י יה יהו יהוה הוה וה ה), the full word once at the turn; click again to collapse it back">רצוא ושוב</button>
+                      title="Write the text (or just the selected words) as its run and return — ratzo vashov (יהוה → י יה יהו יהוה הוה וה ה), the full word once at the turn; press again to run and return each step">רצוא ושוב</button>
+              <button class="insert-sulam" type="button"
+                      title="Write the text (or just the selected words) up and down the ladder — sulam, tosefet umigra'at (יהוה → י יה יהו יהוה יהוה הוה וה ה), the full word twice at the turn; press again to climb each step in turn">סלם</button>
+              <button class="insert-milui" type="button"
+                      title="Write the text (or just the selected words) as its letter names under the chosen milui scheme (הודו → הא ויו דלת ויו); press again to spell the names themselves — milui d'milui">מילוי</button>
+              <select id="milui-scheme" class="milui-scheme" title="Milui scheme the מילוי key spells with"></select>
+              <button class="insert-undo" type="button" disabled
+                      title="Undo the last key press (אחור, רצוא ושוב, סלם, מילוי or a sample chip)">↶ ביטול</button>
             </div>
             <span id="script-badge" class="script-badge">—</span>
           </div>
@@ -35,7 +44,7 @@
       </div>
       <div class="chips" id="chips">
         <button class="chip" data-text="א¹⁰⁰⁰היה סופי">א¹⁰⁰⁰היה סופי</button>
-        <button class="chip" data-text="בראשית ברא אלהים את השמים ואת הארץ׃">בראשית ברא אלהים את השמים ואת הארץ׃</button>
+        <button class="chip" data-text="בראשית ברא אלהים את השמים ואת הארץ">בראשית ברא אלהים את השמים ואת הארץ</button>
         <button class="chip" data-text="Κύριος Ἰησοῦς Χριστός">Κύριος Ἰησοῦς Χριστός</button>
         <button class="chip" data-text="Ἐν ἀρχῇ ἦν ὁ λόγος, καὶ ὁ λόγος ἦν πρὸς τὸν Θεόν, καὶ Θεὸς ἦν ὁ λόγος.">Ἐν ἀρχῇ ἦν ὁ λόγος, καὶ ὁ λόγος ἦν πρὸς τὸν Θεόν, καὶ Θεὸς ἦν ὁ λόγος.</button>
         <button class="chip" data-text="Love and Light">Love and Light</button>
@@ -46,7 +55,8 @@
           <div class="seg" id="shape-seg">
             <button type="button" data-shape="triangle">△ Triangle <span class="heb">אחור</span></button>
             <button type="button" data-shape="ladder">◇ Ladder <span class="heb">סלם</span></button>
-            <button type="button" data-shape="pyramid">⬠ Out and back <span class="heb">רצוא ושוב</span></button>
+            <button type="button" data-shape="ladderSplit">▭ Rectangle <span class="heb">סלם</span></button>
+            <button type="button" data-shape="aligned">◩ Square <span class="heb">רצוא ושוב</span></button>
           </div>
         </div>
         <p class="tri-hint" id="shape-hint"></p>

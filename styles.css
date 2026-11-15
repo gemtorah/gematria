@@ -90,6 +90,10 @@ header { text-align: center; margin-bottom: 34px; }
 }
 .site-nav a:hover { border-color: rgba(217, 171, 74, 0.5); transform: translateY(-1px); }
 .site-nav-here { color: var(--muted); }
+/* Rings page: each cell of a wheel fades in, staggered by --d */
+.ring-cell { animation: ring-in 0.45s ease-out backwards; animation-delay: var(--d, 0ms); }
+.ring-cell:hover path { filter: brightness(0.96); }
+@keyframes ring-in { from { opacity: 0; } to { opacity: 1; } }
 .tri-controls { margin-top: 16px; }
 .tri-hint { color: var(--muted); font-size: 0.85rem; flex: 1 1 auto; min-width: 0; }
 /* value pills carry long cipher names: let the name wrap so two fit a phone row */
@@ -186,14 +190,16 @@ header { text-align: center; margin-bottom: 34px; }
 .script-badge.el { color: var(--indigo); border-color: rgba(79, 94, 217, 0.5); }
 .script-badge.en { color: var(--teal); border-color: rgba(13, 148, 136, 0.5); }
 
-/* rabati (×1000) and word-run keys (achor, ratzo vashov, milui), in the
+/* rabati (×1000) and word-run keys (achor, ratzo vashov, sulam, milui), in the
    row above the textarea; the keys wrap under the badge on a phone rather
    than squeezing a label onto two lines */
 .phrase-keys { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .insert-rabati,
 .insert-achor,
 .insert-ratzo,
-.insert-milui {
+.insert-sulam,
+.insert-milui,
+.insert-undo {
   white-space: nowrap;
   font-family: var(--serif);
   font-size: 1.05rem;
@@ -209,11 +215,29 @@ header { text-align: center; margin-bottom: 34px; }
 .insert-rabati:hover,
 .insert-achor:hover,
 .insert-ratzo:hover,
-.insert-milui:hover {
+.insert-sulam:hover,
+.insert-milui:hover,
+.insert-undo:hover:not(:disabled) {
   border-color: rgba(217, 171, 74, 0.5);
   box-shadow: 0 0 0 4px rgba(217, 171, 74, 0.12);
   transform: translateY(-1px);
 }
+/* the Triangles page's milui scheme picker sits in the key row as a pill */
+.milui-scheme {
+  font-family: var(--serif);
+  font-size: 0.95rem;
+  color: var(--gold-deep);
+  background: rgba(20, 16, 42, 0.04);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+  max-width: 11em;
+}
+.milui-scheme:focus { outline: none; border-color: rgba(217, 171, 74, 0.55); }
+/* the undo key sits greyed until a key press has given it something to undo */
+.insert-undo { color: var(--muted); }
+.insert-undo:disabled { opacity: 0.4; cursor: default; }
 
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 .chip {

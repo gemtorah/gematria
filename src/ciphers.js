@@ -159,7 +159,7 @@
       // ladder with the repeated full word removed, so it comes to n× the
       // plain value, one word short of the ladder's (n+1)×. The name is
       // the רצוא ושוב of Ezekiel 1:14.
-      ratzoVashov: { label: 'רצוא ושוב / Running and Returning', short: 'out and back', line: 'Ratzo VaShov רצוא ושוב', heb: 'רצוא ושוב', map: hebrew.HEBREW_VALUES,
+      ratzoVashov: { label: 'רצוא ושוב / Run and Return', short: 'run and return', line: 'Ratzo VaShov רצוא ושוב', heb: 'רצוא ושוב', map: hebrew.HEBREW_VALUES,
                    source: { quote: 'והחיות רצוא ושוב', cite: 'יחזקאל א׳, י״ד · Mathematics in Yitro, inner.org' },
                    transform: core.pyramid, building: true, steps: pyramidSteps, groups: outAndBack },
       // Abulafia, אוצר עדן הגנוז, גנוז חלק ז': the Name has three ways, שווי

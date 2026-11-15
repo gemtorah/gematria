@@ -14,7 +14,7 @@
     <header>
       <h1 class="brand"><span class="glyphs">אψ</span>Gematria Studio</h1>
       <p class="tagline">Type a word or phrase in Hebrew, Greek or English — watch its numbers become art.</p>
-      <nav class="site-nav"><a href="triangles.html">△ Triangles · משולשים</a></nav>
+      <nav class="site-nav"><a href="triangles.html">△ Triangles · משולשים</a><a href="rings.html">◎ Rings · מילוי</a></nav>
     </header>
 
     <!-- input -->
@@ -26,11 +26,15 @@
               <button class="insert-rabati" type="button"
                       title="Insert rabati mark — the letter before it counts ×1000 (א¹⁰⁰⁰ = 1000, ב¹⁰⁰⁰ = 2000)">רבתי</button>
               <button class="insert-achor" type="button"
-                      title="Write the selected word as its prefixes — mispar haachor (יהוה → י יה יהו יהוה); click again to collapse it back">אחור</button>
+                      title="Write the text (or just the selected words) as its prefixes — mispar haachor (יהוה → י יה יהו יהוה); press again to write out each step in turn">אחור</button>
               <button class="insert-ratzo" type="button"
-                      title="Write the selected word out and back — ratzo vashov (יהוה → י יה יהו יהוה הוה וה ה), the full word once at the turn; click again to collapse it back">רצוא ושוב</button>
+                      title="Write the text (or just the selected words) as its run and return — ratzo vashov (יהוה → י יה יהו יהוה הוה וה ה), the full word once at the turn; press again to run and return each step">רצוא ושוב</button>
+              <button class="insert-sulam" type="button"
+                      title="Write the text (or just the selected words) up and down the ladder — sulam, tosefet umigra'at (יהוה → י יה יהו יהוה יהוה הוה וה ה), the full word twice at the turn; press again to climb each step in turn">סלם</button>
               <button class="insert-milui" type="button"
-                      title="Write the selected word as its letter names under the chosen milui scheme (הודו → הא ויו דלת ויו); click again to fold it back">מילוי</button>
+                      title="Write the text (or just the selected words) as its letter names under the chosen milui scheme (הודו → הא ויו דלת ויו); press again to spell the names themselves — milui d'milui">מילוי</button>
+              <button class="insert-undo" type="button" disabled
+                      title="Undo the last key press in this box (רבתי, אחור, רצוא ושוב, סלם, מילוי or a sample chip)">↶ ביטול</button>
             </div>
             <span id="script-badge" class="script-badge">—</span>
           </div>
@@ -43,11 +47,15 @@
               <button class="insert-rabati" type="button"
                       title="Insert rabati mark — the letter before it counts ×1000 (א¹⁰⁰⁰ = 1000, ב¹⁰⁰⁰ = 2000)">רבתי</button>
               <button class="insert-achor" type="button"
-                      title="Write the selected word as its prefixes — mispar haachor (יהוה → י יה יהו יהוה); click again to collapse it back">אחור</button>
+                      title="Write the text (or just the selected words) as its prefixes — mispar haachor (יהוה → י יה יהו יהוה); press again to write out each step in turn">אחור</button>
               <button class="insert-ratzo" type="button"
-                      title="Write the selected word out and back — ratzo vashov (יהוה → י יה יהו יהוה הוה וה ה), the full word once at the turn; click again to collapse it back">רצוא ושוב</button>
+                      title="Write the text (or just the selected words) as its run and return — ratzo vashov (יהוה → י יה יהו יהוה הוה וה ה), the full word once at the turn; press again to run and return each step">רצוא ושוב</button>
+              <button class="insert-sulam" type="button"
+                      title="Write the text (or just the selected words) up and down the ladder — sulam, tosefet umigra'at (יהוה → י יה יהו יהוה יהוה הוה וה ה), the full word twice at the turn; press again to climb each step in turn">סלם</button>
               <button class="insert-milui" type="button"
-                      title="Write the selected word as its letter names under the chosen milui scheme (הודו → הא ויו דלת ויו); click again to fold it back">מילוי</button>
+                      title="Write the text (or just the selected words) as its letter names under the chosen milui scheme (הודו → הא ויו דלת ויו); press again to spell the names themselves — milui d'milui">מילוי</button>
+              <button class="insert-undo" type="button" disabled
+                      title="Undo the last key press in this box (רבתי, אחור, רצוא ושוב, סלם, מילוי or a sample chip)">↶ ביטול</button>
             </div>
             <span id="script-badge-b" class="script-badge">—</span>
           </div>
@@ -57,7 +65,7 @@
       </div>
       <div class="chips" id="chips">
         <button class="chip" data-text="א¹⁰⁰⁰היה סופי">א¹⁰⁰⁰היה סופי</button>
-        <button class="chip" data-text="בראשית ברא אלהים את השמים ואת הארץ׃">בראשית ברא אלהים את השמים ואת הארץ׃</button>        
+        <button class="chip" data-text="בראשית ברא אלהים את השמים ואת הארץ">בראשית ברא אלהים את השמים ואת הארץ</button>        
         <button class="chip" data-text="Κύριος Ἰησοῦς Χριστός">Κύριος Ἰησοῦς Χριστός</button>
         <button class="chip" data-text="Ἐν ἀρχῇ ἦν ὁ λόγος, καὶ ὁ λόγος ἦν πρὸς τὸν Θεόν, καὶ Θεὸς ἦν ὁ λόγος.">Ἐν ἀρχῇ ἦν ὁ λόγος, καὶ ὁ λόγος ἦν πρὸς τὸν Θεόν, καὶ Θεὸς ἦν ὁ λόγος.</button>
         <button class="chip" data-text="Love and Light">Love and Light</button>

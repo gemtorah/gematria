@@ -36,12 +36,20 @@
   // the three runs, borrowed from the Hebrew building ciphers' own step
   // functions (they slice letter arrays, so they serve every script)
   const SHAPES = {
-    triangle: { label: '△ Triangle', heb: 'אחור', name: 'Mispar HaAchor אחור',
+    triangle: { label: '△ Triangle', heb: 'אחור', name: 'Mispar HaAchor אחור', en: 'Building',
                 groups: G.CIPHERS.he.boneh.groups },
-    ladder:   { label: '◇ Ladder', heb: 'סלם', name: 'Sulam סלם',
+    ladder:   { label: '◇ Ladder', heb: 'סלם', name: 'Sulam סלם', en: 'Ladder',
                 groups: G.CIPHERS.he.tosefetMigraat.groups },
-    pyramid:  { label: '⬠ Out and back', heb: 'רצוא ושוב', name: 'Ratzo VaShov רצוא ושוב',
-                groups: G.CIPHERS.he.ratzoVashov.groups },
+    // the ladder opened into its two triangles: the full word closes the
+    // climb and opens the descent, so they fill an (n+1) × n rectangle
+    ladderSplit: { label: '▭ Rectangle', heb: 'סלם', name: 'Sulam סלם', en: 'Ladder',
+                groups: G.CIPHERS.he.tosefetMigraat.groups, aligned: true },
+    // the out-and-back run as a square of two triangles: the run out
+    // expands down one side of the diagonal while the way back collapses
+    // on the other, with the two movements as arrows between them (see
+    // drawSpans)
+    aligned:  { label: '◩ Square', heb: 'רצוא ושוב', name: 'Ratzo VaShov רצוא ושוב', en: 'Run and Return',
+                groups: G.CIPHERS.he.ratzoVashov.groups, aligned: true },
   };
 
   const state = {
@@ -49,7 +57,15 @@
     shape: 'triangle',
     // one letter-value table per script
     values: { ...G.DEFAULT_CIPHER },
+    // milui scheme the מילוי key spells with
+    scheme: 'standard',
   };
+
+  // the Custom scheme reads the table the studio saved, if any
+  try {
+    const saved = JSON.parse(localStorage.getItem('gematria-custom-milui') || 'null');
+    if (saved) G.setCustomMilui(saved);
+  } catch (e) { /* corrupt or invalid — keep shipped defaults */ }
 
   /* ---- svg helpers ------------------------------------------------------------ */
   function el(tag, attrs = {}, children = []) {
@@ -91,7 +107,17 @@
   const registryName = (script, shape, spec) => {
     const hit = Object.values(G.CIPHERS[script]).find((c) =>
       c.building && c.groups === SHAPES[shape].groups && c.map === spec.map);
-    return hit ? (hit.line || hit.label) : `${SHAPES[shape].name} · ${spec.line || spec.label}`;
+    const base = hit ? (hit.line || hit.label) : SHAPES[shape].name;
+    // a Hebrew figure always names its letter table by the studio's short
+    // tag (רגיל, סדרי, קטן …), the regular one included; the Greek and
+    // English registry names already say theirs (Eng. Ladder Ord.)
+    if (script === 'he') return `${base} · ${spec.heb || spec.line || spec.label}`;
+    if (hit) return base;
+    // Greek and English runs without a registry name are named the way
+    // the registry names its own — script, run, table (Gr. Building Ord.)
+    const line = spec.line || spec.label, pre = /^(Eng|Gr)\. /.exec(line);
+    return pre ? `${pre[0]}${SHAPES[shape].en} ${line.slice(pre[0].length)}`
+      : `${SHAPES[shape].en} · ${line}`;
   };
 
   function analyse(text, override) {
@@ -149,6 +175,9 @@
     const g = el('g');
     g.appendChild(txt(cx, top + TITLE_H / 2, word.raw, R * 1.15, ART.title, 700));
     const rowsTop = top + TITLE_H;
+    const aligned = SHAPES[state.shape].aligned;
+    const cols = Math.max(...word.rows.map((r) => r.letters.length));
+    if (aligned) return drawSpans(word, cx, rowsTop, g, cols, rtl, delay);
     word.rows.forEach((row, i) => {
       const n = row.letters.length;
       const y = rowsTop + i * VS + R;
@@ -163,7 +192,7 @@
           stroke: row.down ? ART.downEdge : ART.edge, 'stroke-width': 2.5,
         }));
         const size = G.graphemes(letter).length > 1 ? R * 0.62 : R * 1.05;
-        cell.appendChild(txt(x, y, letter, size, ART.text, 600));
+        cell.appendChild(txt(x, y, letter, size, row.down ? ART.downEdge : ART.edge, 700));
         g.appendChild(cell);
       });
       // the row's value sits past its reading end
@@ -177,6 +206,126 @@
       `${word.circles} circles · ${word.rows.length} rows`, R * 0.46, ART.rowValue, 500, ART.sans));
     const widest = Math.max(...word.rows.map((r) => r.letters.length));
     return { g, width: (widest - 1) * HS + 2 * R + 2 * SIDE, height: TITLE_H + word.rows.length * VS + VALUE_H, bottom };
+  }
+
+  // the split figure: a run as two triangles facing each other across a
+  // stepped diagonal. Each grid row holds a prefix (gold, the way out) and,
+  // in the columns it has not reached, a suffix (indigo, the way back), so
+  // every row reads the whole word: as the gold triangle expands down the
+  // figure the indigo one collapses. רצוא ושוב writes the full word once —
+  // T(n) + T(n−1) letters, an n × n square, n × the word; סלם writes it in
+  // both runs — two T(n), an (n+1) × n rectangle, (n+1) × the word. The
+  // triangles are drawn apart along the diagonal and an arrow walks down
+  // the steps of each, in the order its numbered badges give; the full word's rows — where the run turns — are
+  // filled deeper, and each triangle's sum is shown under the total.
+  const SQ = R * 2;                 // side of one letter cell
+  const SPLIT = R * 1.15;           // how far each triangle moves off the diagonal
+  const TURN = { out: '#ecd7a2', back: '#d5dbfa' };
+  const squareWidth = (n) => n * SQ + 2 * (n > 1 ? SPLIT : 0) + 2 * R * 3.1;
+  function drawSpans(word, cx, rowsTop, g, cols, rtl, delay) {
+    const m = word.rows.length - cols;      // steps on the way back
+    const k = m - (cols - 1);               // 0: full word once, 1: in both runs
+    const gridRows = cols + k;
+    const gap = m ? SPLIT : 0, sx = rtl ? 1 : -1;
+    const left = cx - (cols * SQ) / 2, top = rowsTop + R * 1.1 + gap;
+    // x of the boundary before column c, in reading direction
+    const bx = (c) => (rtl ? left + (cols - c) * SQ : left + c * SQ);
+    const cellX = (c) => Math.min(bx(c), bx(c + 1));
+    const letters = word.rows[cols - 1].letters;
+    // the gold triangle slides toward the start and down, the indigo one the other way
+    const outG = el('g', { transform: `translate(${sx * gap} ${gap})` });
+    const backG = el('g', { transform: `translate(${-sx * gap} ${-gap})` });
+    // a step's value and its place in the run, past the outer side of its row
+    const tag = (group, x, y, dir, value, step, color) => {
+      group.appendChild(txt(x + dir * R * 0.45, y, String(value), R * 0.5, color, 700, ART.sans,
+        dir > 0 ? 'start' : 'end'));
+      const bxc = x + dir * R * 2.45;
+      group.appendChild(el('circle', { cx: bxc, cy: y, r: R * 0.36, fill: 'none', stroke: color, 'stroke-width': 1.4 }));
+      group.appendChild(txt(bxc, y, String(step), R * 0.36, color, 700, ART.sans));
+    };
+    for (let y = 0; y < gridRows; y++) {
+      const outLen = y - k + 1, yy = top + y * SQ;
+      const turnOut = outLen === cols, turnBack = y < m && m - y === cols;
+      letters.forEach((letter, c) => {
+        const out = c < outLen;       // inside the prefix of this row
+        const cell = el('g', { class: 'cell' });
+        cell.style.setProperty('--d', `${delay.n}ms`); delay.n += delay.step;
+        cell.appendChild(el('rect', {
+          x: cellX(c), y: yy, width: SQ, height: SQ,
+          fill: out ? (turnOut ? TURN.out : ART.fill) : (turnBack ? TURN.back : ART.downFill),
+          stroke: out ? ART.edge : ART.downEdge, 'stroke-width': 1.2,
+        }));
+        const size = G.graphemes(letter).length > 1 ? R * 0.62 : R * 1.05;
+        // letters take the colour of their triangle's arrow
+        cell.appendChild(txt(cellX(c) + SQ / 2, yy + SQ / 2, letter, size, out ? ART.edge : ART.downEdge, 700));
+        (out ? outG : backG).appendChild(cell);
+      });
+      if (outLen >= 1) tag(outG, bx(0), yy + SQ / 2, sx, word.rows[outLen - 1].value, outLen, ART.edge);
+      if (y < m) tag(backG, bx(cols), yy + SQ / 2, -sx, word.rows[cols + y].value, cols + y + 1, ART.downEdge);
+    }
+    // each triangle's outline, stepped along the diagonal
+    const frame = (d) => el('path', { d, fill: 'none', stroke: ART.text, 'stroke-width': 3, 'stroke-linejoin': 'round' });
+    let d = `M${bx(0)} ${top + k * SQ}H${bx(1)}`;
+    for (let i = 0; i < cols - 1; i++) d += `V${top + (k + i + 1) * SQ}H${bx(i + 2)}`;
+    outG.appendChild(frame(d + `V${top + gridRows * SQ}H${bx(0)}Z`));
+    if (m) {
+      d = `M${bx(cols)} ${top}V${top + m * SQ}`;
+      for (let j = m - 1; j >= 0; j--) d += `H${bx(cols - (m - j))}V${top + j * SQ}`;
+      backG.appendChild(frame(d + 'Z'));
+    }
+    g.appendChild(outG); g.appendChild(backG);
+
+    // the two movements through the opening, each walking the steps of its
+    // own triangle in the order of the badges: the way out comes down the
+    // gold stairs and runs out along the full word, the way back comes
+    // down the indigo stairs to its last letter
+    if (m) {
+      const lift = gap * 0.58;
+      const stairs = (y0, y1, runOut) => {
+        const pts = [];
+        for (let y = y0; y <= y1; y++) {
+          pts.push([bx(y - k + 1), top + y * SQ], [bx(y - k + 1), top + (y + 1) * SQ]);
+        }
+        if (runOut) pts.push([bx(cols) - sx * R * 0.5, top + (y1 + 1) * SQ]);
+        return pts;
+      };
+      const arrow = (pts, shift, color, label, labelAtEnd) => {
+        const q = pts.map(([x, y]) => [x + sx * shift, y + shift]);
+        const [ex, ey] = q[q.length - 1], [px, py] = q[q.length - 2];
+        const len = Math.hypot(ex - px, ey - py), tx = (ex - px) / len, ty = (ey - py) / len;
+        q[q.length - 1] = [ex - tx * 10, ey - ty * 10];
+        g.appendChild(el('path', { d: 'M' + q.map((v) => v.join(' ')).join('L'), fill: 'none',
+          stroke: color, 'stroke-width': 4.5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+        g.appendChild(el('path', {
+          d: `M${ex + tx * 4} ${ey + ty * 4}L${ex - tx * 13 - ty * 8} ${ey - ty * 13 + tx * 8}` +
+            `L${ex - tx * 13 + ty * 8} ${ey - ty * 13 - tx * 8}Z`,
+          fill: color }));
+        // named past its head (the way out) or above its start (the way back)
+        const [lx, ly] = labelAtEnd ? [ex + tx * R * 1.5, ey + ty * R * 1.5] : [q[0][0] + sx * R * 0.95, q[0][1] - R * 0.55];
+        g.appendChild(txt(lx, ly, label, R * 0.55, color, 700));
+      };
+      const names = word.script !== 'he' ? (k ? ['up', 'down'] : ['run', 'return'])
+        : k ? ['תוספת', 'מגרעת'] : ['רצוא', 'ושוב'];
+      arrow(stairs(k, gridRows - 2, true), lift, ART.edge, names[0], true);
+      arrow(stairs(0, m - 1, false), -lift, ART.downEdge, names[1], false);
+    }
+    const bottom = top + gridRows * SQ + gap + R * 0.9;
+    g.appendChild(txt(cx, bottom + R * 0.75, String(word.total), R * 0.95, ART.text, 800, ART.sans));
+    // the two triangles' sums, each in its colour
+    const outSum = sum(word.rows.slice(0, cols).map((r) => r.value));
+    const sums = txt(cx, bottom + R * 1.8, '', R * 0.55, ART.text, 700, ART.sans);
+    [[String(outSum), ART.edge], [' + ', ART.rowValue], [String(word.total - outSum), ART.downEdge],
+      [` = ${word.total}`, ART.rowValue]].forEach(([t, fill]) => {
+      const span = el('tspan', { fill });
+      span.textContent = t;
+      sums.appendChild(span);
+    });
+    if (m) g.appendChild(sums);
+    g.appendChild(txt(cx, bottom + R * (m ? 2.75 : 1.75),
+      `${gridRows} × ${cols} = ${gridRows * cols} letters · every row is the word`,
+      R * 0.46, ART.rowValue, 500, ART.sans));
+    return { g, width: squareWidth(cols),
+      height: bottom - rowsTop + TITLE_H + VALUE_H + (m ? R : 0), bottom: bottom + (m ? R : 0) };
   }
 
   function render() {
@@ -198,7 +347,9 @@
     let line = [], lineW = 0;
     for (const item of words) {
       const widest = Math.max(...item.w.rows.map((r) => r.letters.length));
-      item.width = (widest - 1) * HS + 2 * R + 2 * SIDE;
+      // the square carries an arrow beyond each side's values
+      item.width = SHAPES[state.shape].aligned ? squareWidth(widest)
+        : (widest - 1) * HS + 2 * R + 2 * SIDE;
       const need = item.width + (line.length ? WORD_GAP : 0);
       if (line.length && lineW + need > MAX_LINE_W) { lines.push(line); line = []; lineW = 0; }
       line.push(item); lineW += need;
@@ -303,7 +454,11 @@
 
     const labels = SHAPES[state.shape].groups(['1', '2', '3', '4']);
     const circles = sum(labels.map((l) => l.length));
-    $('shape-hint').textContent = labels.length > 4
+    $('shape-hint').textContent = state.shape === 'aligned'
+      ? 'רצוא ושוב as two triangles of a square: the gold triangle is the run out, expanding row by row, and the indigo triangle is the way back, collapsing beside it. The arrows walk down the steps of each triangle in the order of the numbered badges. Every row reads the whole word, so a 4-letter word is worth 4× its value.'
+      : state.shape === 'ladderSplit'
+      ? 'סלם as two equal triangles of a rectangle: the climb in gold, the descent in indigo, the full word in both. Every row reads the whole word, so a 4-letter word is worth 5× its value.'
+      : labels.length > 4
       ? `${SHAPES[state.shape].heb}: a 4-letter word makes ${labels.length} rows, ${circles} circles.`
       : `Row N holds the first N letters: a 4-letter word makes 4 rows, ${circles} circles — the triangular number T(4).`;
   }
@@ -324,59 +479,91 @@
   $('chips').addEventListener('click', (e) => {
     const chip = e.target.closest('.chip');
     if (!chip) return;
+    remember($('phrase'));
     $('phrase').value = chip.dataset.text;
-    state.text = chip.dataset.text;
-    render();
+    commit($('phrase'));
   });
 
-  // רצוא ושוב key: the selected words (or the word around the caret) are
-  // written out by their prefixes and back by their suffixes, the full word
-  // once at the turn (יהוה → י יה יהו יהוה הוה וה ה); a selection that is
-  // already such a run folds back to its word, each word on its own.
-  const ratzoExpand = (word) => {
-    const t = tokens(word);
-    const up = t.map((_, i) => t.slice(0, i + 1).join(''));
-    const down = t.slice(1).map((_, i) => t.slice(i + 1).join(''));
-    return up.concat(down).join(' ');
+  // Every key press on the phrase box (the word keys, a sample chip) first
+  // remembers the text and selection it rewrites, so the undo key can step
+  // back through them. Typing by hand does not add to the stack.
+  const undoStack = [];
+  const remember = (ta) => {
+    undoStack.push({ value: ta.value, start: ta.selectionStart, end: ta.selectionEnd });
+    if (undoStack.length > 50) undoStack.shift();
+    $('phrase').closest('.phrase-box').querySelector('.insert-undo').disabled = false;
   };
-  const ratzoCollapse = (words) => {
-    const out = [];
-    for (let i = 0; i < words.length;) {
-      let run = 0;
-      for (let n = Math.floor((words.length - i + 1) / 2); n >= 2 && !run; n--) {
-        const t = tokens(words[i + n - 1]);
-        if (t.length === n && t.every((_, k) =>
-          words[i + k] === t.slice(0, k + 1).join('') &&
-          (k === 0 || words[i + n + k - 1] === t.slice(k).join('')))) run = n;
-      }
-      if (run) { out.push(words[i + run - 1]); i += 2 * run - 1; }
-      else out.push(words[i++]);
-    }
-    return out;
-  };
-  document.querySelectorAll('.insert-ratzo').forEach((btn) => {
+  const commit = (ta) => { state.text = ta.value; render(); };
+  document.querySelectorAll('.insert-undo').forEach((btn) => {
     btn.addEventListener('click', () => {
       const ta = $('phrase');
+      const snap = undoStack.pop();
+      if (!snap) return;
       ta.focus();
-      let start = ta.selectionStart ?? ta.value.length;
-      let end = ta.selectionEnd ?? start;
-      if (start === end) {
-        while (start > 0 && !/\s/.test(ta.value[start - 1])) start--;
-        while (end < ta.value.length && !/\s/.test(ta.value[end])) end++;
-      }
-      const sel = ta.value.slice(start, end);
-      start += sel.length - sel.trimStart().length;
-      end -= sel.length - sel.trimEnd().length;
-      const words = sel.trim().split(/\s+/).filter(Boolean);
-      if (!words.length) return;
-      const collapsed = ratzoCollapse(words);
-      const insert = collapsed.length < words.length ? collapsed.join(' ')
-        : words.map(ratzoExpand).join(' ');
-      ta.setRangeText(insert, start, end, 'select');
-      state.text = ta.value;
-      render();
+      ta.value = snap.value;
+      ta.setSelectionRange(snap.start, snap.end);
+      btn.disabled = !undoStack.length;
+      commit(ta);
     });
   });
+
+  // A word key rewrites the selected words (or the whole text when nothing
+  // is selected) with `expand`. The result stays selected, so pressing the
+  // key again applies the same expansion to every word it just wrote.
+  const bindWordKey = (selector, expand) => {
+    document.querySelectorAll(selector).forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const ta = $('phrase');
+        ta.focus();
+        let start = ta.selectionStart ?? 0;
+        let end = ta.selectionEnd ?? start;
+        if (start === end) { start = 0; end = ta.value.length; }
+        const sel = ta.value.slice(start, end);
+        start += sel.length - sel.trimStart().length;
+        end -= sel.length - sel.trimEnd().length;
+        const words = sel.trim().split(/\s+/).filter(Boolean);
+        if (!words.length) return;
+        remember(ta);
+        ta.setRangeText(words.map(expand).join(' '), start, end, 'select');
+        commit(ta);
+      });
+    });
+  };
+  // the three runs as text, the same slices the shapes draw: אחור writes
+  // each word's prefixes (יהוה → י יה יהו יהוה); רצוא ושוב runs out by the
+  // prefixes and back by the suffixes with the full word once at the turn
+  // (… יהוה הוה וה ה); סלם is the ladder, the full word in both runs
+  const prefixes = (t) => t.map((_, i) => t.slice(0, i + 1).join(''));
+  const suffixes = (t) => t.map((_, i) => t.slice(i).join(''));
+  const achorExpand = (word) => prefixes(tokens(word)).join(' ');
+  const ratzoExpand = (word) => {
+    const t = tokens(word);
+    return prefixes(t).concat(suffixes(t).slice(1)).join(' ');
+  };
+  const sulamExpand = (word) => {
+    const t = tokens(word);
+    return prefixes(t).concat(suffixes(t)).join(' ');
+  };
+  // מילוי key: every letter is written as its name under the chosen scheme
+  // (הודו → הא ויו דלת ויו), so each name becomes its own shape; pressing
+  // again spells the names themselves — milui d'milui
+  const miluiExpand = (word) =>
+    tokens(word).map((t) => G.chooseSpelling(t, state.scheme) || t).join(' ');
+  bindWordKey('.insert-achor', achorExpand);
+  bindWordKey('.insert-ratzo', ratzoExpand);
+  bindWordKey('.insert-sulam', sulamExpand);
+  bindWordKey('.insert-milui', miluiExpand);
+
+  // the scheme picker beside the מילוי key
+  const schemeSel = $('milui-scheme');
+  for (const [key, spec] of Object.entries(G.SCHEMES)) {
+    const o = document.createElement('option');
+    o.value = key;
+    o.textContent = `${spec.name} ${spec.heb}`;
+    schemeSel.appendChild(o);
+  }
+  schemeSel.value = state.scheme;
+  schemeSel.addEventListener('change', () => { state.scheme = schemeSel.value; });
 
   /* ---- export ---------------------------------------------------------------- */
   const safeName = () =>
@@ -416,9 +603,13 @@
   });
 
   // the studio's one-line form for building ciphers: word - run · run = total (cipher)
+  // with a second row counting the letters the run writes out (one per
+  // circle), the way the studio's copy line does
   function shortLine(analysis) {
     const runs = analysis.words.map((w) => w.rows.map((r) => r.label).join(' ')).join(' · ');
-    return `${state.text.trim()} - ${runs} = ${analysis.total}${primeTag(analysis.total)} (${analysis.name})`;
+    const letters = sum(analysis.words.map((w) => w.circles));
+    return `${state.text.trim()} - ${runs} = ${analysis.total}${primeTag(analysis.total)} (${analysis.name})` +
+      `\nLetters: ${letters}`;
   }
   $('copy-line').addEventListener('click', async (e) => {
     const analysis = analyse(state.text);
